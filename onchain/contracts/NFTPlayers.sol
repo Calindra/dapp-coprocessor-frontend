@@ -26,23 +26,22 @@ contract NFTPlayers is ERC721, ERC721Enumerable, Ownable {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721Enumerable)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
-    function getAllTokens(address owner) external view returns (uint256[] memory) {
+    function getAllTokens(
+        address owner
+    ) external view returns (uint256[] memory) {
         uint256 count = balanceOf(owner);
         uint256[] memory tokenIds = new uint256[](count);
-        
+
         for (uint256 i = 0; i < count; i++) {
             tokenIds[i] = tokenOfOwnerByIndex(owner, i);
         }
-        
+
         return tokenIds;
     }
 
@@ -75,15 +74,35 @@ contract NFTPlayers is ERC721, ERC721Enumerable, Ownable {
         return authority;
     }
 
+    function mintNFTs(
+        address collector,
+        string[] memory names,
+        string memory baseTokenURI
+    ) public {
+        // require(
+        //     authority == msg.sender || owner() == msg.sender,
+        //     "Only the authority can mint NFTs"
+        // );
+        uint256 tokenId;
+        for (uint256 i = 0; i < names.length; i++) {
+            // this.mintNFT(collector, baseTokenURI, names[i]);
+            tokenId = totalSupply(); // Gets the next token ID based on current supply
+            _safeMint(collector, tokenId);
+            _tokenURIs[tokenId] = baseTokenURI;
+            _levels[tokenId] = this.getRandomNumber(tokenId);
+            _names[tokenId] = names[i];
+        }
+    }
+
     function mintNFT(
         address collector,
         string memory _tokenURI,
         string memory name
     ) public returns (uint256) {
-        require(
-            authority == msg.sender || owner() == msg.sender,
-            "Only the authority can mint NFTs"
-        );
+        // require(
+        //     authority == msg.sender || owner() == msg.sender,
+        //     "Only the authority can mint NFTs"
+        // );
         _currentTokenId++; // Increment before minting
         uint256 newTokenId = _currentTokenId;
 

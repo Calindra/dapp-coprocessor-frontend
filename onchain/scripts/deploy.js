@@ -26,14 +26,20 @@ async function main() {
     const nonFunToken = await ethers.getContractAt('NFTPlayers', token.address);
 
     const address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
-    for (let i = 0; i < 15; i++) {
-      console.log(`mint ${i}`)
-      let tx = await nonFunToken.mintNFT(address, "http://localhost:3000/nft-metadata/", `Player ${i}`);
-      await tx.wait();
-      const name = await nonFunToken.getName(`${i}`)
-      const level = await nonFunToken.getLevel(`${i}`)
-      console.log({ name, level })
-    }
+    let tx = await nonFunToken.mintNFTs(address, ["Player 1", "Player 2"], "http://localhost:3000/nft-metadata/");
+    await tx.wait();
+    const i = 1
+    const name = await nonFunToken.getName(`${i}`)
+    const level = await nonFunToken.getLevel(`${i}`)
+    console.log({ name, level })
+    // for (let i = 0; i < 15; i++) {
+    //   console.log(`mint ${i}`)
+    //   let tx = await nonFunToken.mintNFT(address, "http://localhost:3000/nft-metadata/", `Player ${i}`);
+    //   await tx.wait();
+    //   const name = await nonFunToken.getName(`${i}`)
+    //   const level = await nonFunToken.getLevel(`${i}`)
+    //   console.log({ name, level })
+    // }
     // const url = await nonFunToken.tokenURI("1")
     // console.log(url)
   }
