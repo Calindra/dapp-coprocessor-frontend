@@ -3,13 +3,13 @@ const { ERC721Portal__factory, IERC721__factory, EtherPortal__factory } = requir
 const hre = require("hardhat");
 
 async function main() {
-  
+
   const provider = ethers.getDefaultProvider("http://localhost:8545");
   const pk = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
   const signer = new ethers.Wallet(pk, provider);
 
   const dappAddress = '0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e'
-  
+
   const portalAddress = '0xFfdbe43d4c855BF7e0f105c400A50857f53AB044'
   const etherValue = '10000000000000000'
   const portal = EtherPortal__factory.connect(portalAddress, signer)
@@ -28,11 +28,14 @@ async function main() {
     const address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     for (let i = 0; i < 15; i++) {
       console.log(`mint ${i}`)
-      let tx = await nonFunToken.mintNFT(address, `${i}`, "http://localhost:3000/nft-metadata/");
+      let tx = await nonFunToken.mintNFT(address, `${i}`, "http://localhost:3000/nft-metadata/", `Player ${i}`);
       await tx.wait();
+      const name = await nonFunToken.getName(`${i}`)
+      const level = await nonFunToken.getLevel(`${i}`)
+      console.log({ name, level })
     }
-    const url = await nonFunToken.tokenURI("1")
-    console.log(url)
+    // const url = await nonFunToken.tokenURI("1")
+    // console.log(url)
   }
 }
 

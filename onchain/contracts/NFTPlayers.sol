@@ -13,7 +13,11 @@ contract NFTPlayers is ERC721, Ownable {
     address private authority;
     mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => uint8) private _levels;
+    mapping(uint256 => string) private _names;
 
+    /**
+     * make it better in the future
+     */
     function getRandomNumber(uint256 tokenId) external view returns (uint8) {
         uint256 randomHash = uint256(
             keccak256(
@@ -21,6 +25,14 @@ contract NFTPlayers is ERC721, Ownable {
             )
         );
         return uint8((randomHash % 5) + 1); // Ensures a number between 1 and 5
+    }
+
+    function getName(uint256 tokenId) external view returns(string memory) {
+        return _names[tokenId];
+    }
+
+    function getLevel(uint256 tokenId) external view returns(uint8) {
+        return _levels[tokenId];
     }
     
     /**
@@ -37,7 +49,8 @@ contract NFTPlayers is ERC721, Ownable {
     function mintNFT(
         address collector,
         uint256 tokenId,
-        string memory _tokenURI
+        string memory _tokenURI,
+        string memory name
     ) public {
         require(
             authority == msg.sender || owner() == msg.sender,
@@ -46,6 +59,7 @@ contract NFTPlayers is ERC721, Ownable {
         _safeMint(collector, tokenId);
         _tokenURIs[tokenId] = _tokenURI;
         _levels[tokenId] = this.getRandomNumber(tokenId);
+        _names[tokenId] = name;
     }
 
     /**
