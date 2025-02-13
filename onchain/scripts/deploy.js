@@ -28,7 +28,7 @@ async function main() {
     const address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     for (let i = 0; i < 15; i++) {
       console.log(`mint ${i}`)
-      let tx = await nonFunToken.mintNFT(address, `${i}`, "http://localhost:3000/nft-metadata/", `Player ${i}`);
+      let tx = await nonFunToken.mintNFT(address, "http://localhost:3000/nft-metadata/", `Player ${i}`);
       await tx.wait();
       const name = await nonFunToken.getName(`${i}`)
       const level = await nonFunToken.getLevel(`${i}`)

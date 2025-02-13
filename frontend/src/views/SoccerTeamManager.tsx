@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { Team } from '../model/Team';
 import { callRunExecution } from '../services/MatchService';
 import { toHex } from 'viem';
+import { getNFTs } from '../services/NFTPlayersService';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
@@ -150,6 +151,10 @@ const SoccerTeamManager = () => {
     </div>
   );
 
+  const loadNFTs = async () => {
+    getNFTs()
+  }
+  
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <Card>
@@ -160,6 +165,7 @@ const SoccerTeamManager = () => {
           </CardTitle>
           <div className="flex items-center space-x-4">
             <Button onClick={runMatch}>Run Match</Button>
+            <Button onClick={loadNFTs}>Load Team</Button>
             <Badge variant="secondary" className="text-lg">
               Starting XI
             </Badge>
