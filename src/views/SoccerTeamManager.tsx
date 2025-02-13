@@ -1,44 +1,44 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
-import { Player } from '../model/Player';
+import { ArrowLeftRight, Star, User, Users } from 'lucide-react'
+import { useState } from 'react'
+import { Badge } from '../components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Player } from '../model/Player'
 
 const SoccerTeamManager = () => {
   const [team, setTeam] = useState({
     teamA: {
-      name: "Botafogo",
+      name: 'Botafogo',
       goalkeeper: {
-        name: "Bruno",
-        level: 5
+        name: 'Bruno',
+        level: 5,
       },
       defense: [
-        { name: "Oshiro", level: 3 },
-        { name: "Garry", level: 3 },
-        { name: "Léo", level: 3 },
-        { name: "Catarino", level: 3 }
+        { name: 'Oshiro', level: 3 },
+        { name: 'Garry', level: 3 },
+        { name: 'Léo', level: 3 },
+        { name: 'Catarino', level: 3 },
       ],
       middle: [
-        { name: "Oshiro", level: 3 },
-        { name: "Garry", level: 3 },
-        { name: "Léo", level: 3 },
-        { name: "Catarino", level: 3 }
+        { name: 'Oshiro', level: 3 },
+        { name: 'Garry', level: 3 },
+        { name: 'Léo', level: 3 },
+        { name: 'Catarino', level: 3 },
       ],
       attack: [
-        { name: "Léo", level: 3 },
-        { name: "Catarino", level: 3 }
-      ]
-    }
-  });
+        { name: 'Léo', level: 3 },
+        { name: 'Catarino', level: 3 },
+      ],
+    },
+  })
 
   const [benchPlayers] = useState([
-    { name: "João", level: 2, position: "GK" },
-    { name: "Pedro", level: 2, position: "DEF" },
-    { name: "Carlos", level: 2, position: "MID" },
-    { name: "Miguel", level: 2, position: "ATK" },
-  ]);
+    { name: 'João', level: 2, position: 'GK' },
+    { name: 'Pedro', level: 2, position: 'DEF' },
+    { name: 'Carlos', level: 2, position: 'MID' },
+    { name: 'Miguel', level: 2, position: 'ATK' },
+  ])
 
-  const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
+  const PlayerCard = ({ player, position }: { player: Player; position: string }) => (
     <div className="flex items-center space-x-2 bg-white p-3 rounded-lg shadow">
       <User className="h-6 w-6 text-gray-500" />
       <div className="flex-1">
@@ -53,9 +53,9 @@ const SoccerTeamManager = () => {
         </div>
       </div>
     </div>
-  );
+  )
 
-  const PositionSection = ({ title, players, position }: { title: string, players: Player[], position: string }) => (
+  const PositionSection = ({ title, players, position }: { title: string; players: Player[]; position: string }) => (
     <div className="mb-6">
       <h3 className="text-lg font-semibold mb-2 flex items-center">
         <span className="mr-2">{title}</span>
@@ -67,7 +67,7 @@ const SoccerTeamManager = () => {
         ))}
       </div>
     </div>
-  );
+  )
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -91,25 +91,13 @@ const SoccerTeamManager = () => {
           </div>
 
           {/* Defense */}
-          <PositionSection
-            title="Defense"
-            players={team.teamA.defense}
-            position="DEF"
-          />
+          <PositionSection title="Defense" players={team.teamA.defense} position="DEF" />
 
           {/* Midfield */}
-          <PositionSection
-            title="Midfield"
-            players={team.teamA.middle}
-            position="MID"
-          />
+          <PositionSection title="Midfield" players={team.teamA.middle} position="MID" />
 
           {/* Attack */}
-          <PositionSection
-            title="Attack"
-            players={team.teamA.attack}
-            position="ATK"
-          />
+          <PositionSection title="Attack" players={team.teamA.attack} position="ATK" />
 
           {/* Bench */}
           <div className="mt-8">
@@ -126,7 +114,7 @@ const SoccerTeamManager = () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default SoccerTeamManager;
+export default SoccerTeamManager
