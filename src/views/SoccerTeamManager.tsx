@@ -3,43 +3,105 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 import { Badge } from '../components/ui/badge';
 import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
 import { Player } from '../model/Player';
+import { Button } from '../components/ui/button';
+import { Team } from '../model/Team';
 
 const SoccerTeamManager = () => {
+  const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
+  const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
   const [team, setTeam] = useState({
     teamA: {
       name: "Botafogo",
       goalkeeper: {
-        name: "Bruno",
-        level: 5
+        name: "Bruno 1",
+        level: 5,
+        id: "gk1"
       },
       defense: [
-        { name: "Oshiro", level: 3 },
-        { name: "Garry", level: 3 },
-        { name: "Léo", level: 3 },
-        { name: "Catarino", level: 3 }
+        { name: "Oshiro 2", level: 3, id: "def1" },
+        { name: "Garry 3", level: 3, id: "def2" },
+        { name: "Léo 4", level: 3, id: "def3" },
+        { name: "Catarino 5", level: 3, id: "def4" }
       ],
       middle: [
-        { name: "Oshiro", level: 3 },
-        { name: "Garry", level: 3 },
-        { name: "Léo", level: 3 },
-        { name: "Catarino", level: 3 }
+        { name: "Sandhilt 6", level: 3, id: "mid1" },
+        { name: "Madeira 7", level: 3, id: "mid2" },
+        { name: "Coutinho 8", level: 3, id: "mid3" },
+        { name: "Ghiggino 9", level: 3, id: "mid4" }
       ],
       attack: [
-        { name: "Léo", level: 3 },
-        { name: "Catarino", level: 3 }
+        { name: "Milton 10", level: 3, id: "atk1" },
+        { name: "Felipe 11", level: 3, id: "atk2" }
       ]
     }
   });
 
+  const setSelectedPlayer = (player: Player) => {
+    if (selectedPlayerA === null) {
+      return setSelectedPlayerA(player)
+    }
+    if (selectedPlayerB === null) {
+      setSelectedPlayerB(player)
+      handlePositionChange(selectedPlayerA, player)
+      return
+    }
+  }
+
   const [benchPlayers] = useState([
-    { name: "João", level: 2, position: "GK" },
-    { name: "Pedro", level: 2, position: "DEF" },
-    { name: "Carlos", level: 2, position: "MID" },
-    { name: "Miguel", level: 2, position: "ATK" },
+    { name: "Felipe 12", level: 2, position: "GK", id: "bench1" },
+    { name: "Pedro 13", level: 2, position: "DEF", id: "bench2" },
+    { name: "Carlos 14", level: 2, position: "MID", id: "bench3" },
+    { name: "Miguel 15", level: 2, position: "ATK", id: "bench4" },
   ]);
 
+  const findPlayerPos = (team: Team, playerA: Player) => {
+    if (team.goalkeeper.id === playerA.id) {
+      return { list: [], index: -2 }
+    }
+    const indexDef = team.defense.findIndex(p => p.id === playerA.id)
+    if (indexDef !== -1) {
+      return { list: team.defense, index: indexDef }
+    }
+    const indexMid = team.middle.findIndex(p => p.id === playerA.id)
+    if (indexMid !== -1) {
+      return { list: team.middle, index: indexMid }
+    }
+    const indexAtk = team.attack.findIndex(p => p.id === playerA.id)
+    if (indexAtk !== -1) {
+      return { list: team.attack, index: indexAtk }
+    }
+  }
+
+  const handlePositionChange = (playerA: Player, playerB: Player) => {
+    const posA = findPlayerPos(team.teamA, playerA)
+    if (!posA) {
+      return
+    }
+    const posB = findPlayerPos(team.teamA, playerB)
+    if (!posB) {
+      return
+    }
+    if (posA.index === -2) {
+      team.teamA.goalkeeper = playerB
+    }
+    if (posB.index === -2) {
+      team.teamA.goalkeeper = playerA
+    }
+    posA.list[posA.index] = playerB
+    posB.list[posB.index] = playerA
+    setTeam({ ...team });
+    setSelectedPlayerA(null);
+    setSelectedPlayerB(null);
+  };
+
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
-    <div className="flex items-center space-x-2 bg-white p-3 rounded-lg shadow">
+    <div
+      className={`flex items-center space-x-2 p-3 rounded-lg shadow cursor-pointer transition-colors ${selectedPlayerA?.id === player.id
+        ? "bg-blue-100 border-2 border-blue-500"
+        : "bg-white hover:bg-gray-50"
+        }`}
+      onClick={() => setSelectedPlayer(player)}
+    >
       <User className="h-6 w-6 text-gray-500" />
       <div className="flex-1">
         <div className="font-medium">{player.name}</div>
@@ -62,8 +124,8 @@ const SoccerTeamManager = () => {
         <Badge variant="secondary">{players.length}</Badge>
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {players.map((player, index) => (
-          <PlayerCard key={index} player={player} position={position} />
+        {players.map((player, _index) => (
+          <PlayerCard key={player.id} player={player} position={position} />
         ))}
       </div>
     </div>
@@ -77,16 +139,20 @@ const SoccerTeamManager = () => {
             <Users className="mr-2 h-6 w-6" />
             {team.teamA.name} Squad Management
           </CardTitle>
-          <Badge variant="secondary" className="text-lg">
-            Starting XI
-          </Badge>
+          <div className="flex items-center space-x-4">
+            <Badge variant="secondary" className="text-lg">
+              Starting XI
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Goalkeeper */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-2">Goalkeeper</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <PlayerCard player={team.teamA.goalkeeper} position="GK" />
+              {team.teamA.goalkeeper && (
+                <PlayerCard player={team.teamA.goalkeeper} position="GK" />
+              )}
             </div>
           </div>
 
@@ -118,8 +184,8 @@ const SoccerTeamManager = () => {
               Bench Players
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {benchPlayers.map((player, index) => (
-                <PlayerCard key={index} player={player} position={player.position} />
+              {benchPlayers.map((player) => (
+                <PlayerCard key={player.id} player={player} position={player.position} />
               ))}
             </div>
           </div>
