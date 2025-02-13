@@ -6,4 +6,5 @@ export type Team = {
     defense: Player[];
     middle: Player[];
     attack: Player[];
+    bench: Player[];
 };

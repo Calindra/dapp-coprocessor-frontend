@@ -32,6 +32,12 @@ const SoccerTeamManager = () => {
       attack: [
         { name: "Milton 10", level: 3, id: "atk1" },
         { name: "Felipe 11", level: 3, id: "atk2" }
+      ],
+      bench: [
+        { name: "Felipe 12", level: 2, position: "GK", id: "bench1" },
+        { name: "Pedro 13", level: 2, position: "DEF", id: "bench2" },
+        { name: "Carlos 14", level: 2, position: "MID", id: "bench3" },
+        { name: "Miguel 15", level: 2, position: "ATK", id: "bench4" },
       ]
     }
   });
@@ -47,28 +53,25 @@ const SoccerTeamManager = () => {
     }
   }
 
-  const [benchPlayers] = useState([
-    { name: "Felipe 12", level: 2, position: "GK", id: "bench1" },
-    { name: "Pedro 13", level: 2, position: "DEF", id: "bench2" },
-    { name: "Carlos 14", level: 2, position: "MID", id: "bench3" },
-    { name: "Miguel 15", level: 2, position: "ATK", id: "bench4" },
-  ]);
-
-  const findPlayerPos = (team: Team, playerA: Player) => {
-    if (team.goalkeeper.id === playerA.id) {
+  const findPlayerPos = (team: Team, player: Player) => {
+    if (team.goalkeeper.id === player.id) {
       return { list: [], index: -2 }
     }
-    const indexDef = team.defense.findIndex(p => p.id === playerA.id)
+    const indexDef = team.defense.findIndex(p => p.id === player.id)
     if (indexDef !== -1) {
       return { list: team.defense, index: indexDef }
     }
-    const indexMid = team.middle.findIndex(p => p.id === playerA.id)
+    const indexMid = team.middle.findIndex(p => p.id === player.id)
     if (indexMid !== -1) {
       return { list: team.middle, index: indexMid }
     }
-    const indexAtk = team.attack.findIndex(p => p.id === playerA.id)
+    const indexAtk = team.attack.findIndex(p => p.id === player.id)
     if (indexAtk !== -1) {
       return { list: team.attack, index: indexAtk }
+    }
+    const indexBen = team.bench.findIndex(p => p.id === player.id)
+    if (indexBen !== -1) {
+      return { list: team.bench, index: indexBen }
     }
   }
 
@@ -184,7 +187,7 @@ const SoccerTeamManager = () => {
               Bench Players
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {benchPlayers.map((player) => (
+              {team.teamA.bench.map((player) => (
                 <PlayerCard key={player.id} player={player} position={player.position} />
               ))}
             </div>
