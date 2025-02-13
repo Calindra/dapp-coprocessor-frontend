@@ -1,4 +1,5 @@
-import { createWalletClient, custom } from 'viem';
+import { createWalletClient, custom, WalletClient } from 'viem';
+import { hardhat } from 'viem/chains';
 
 declare global {
     interface Window {
@@ -6,10 +7,17 @@ declare global {
     }
 }
 
+let walletClient: WalletClient | undefined
+
+export function getWalletClient() {
+    return walletClient
+}
+
 export async function connectMetaMask() {
     if (typeof window.ethereum !== 'undefined') {
         try {
-            const walletClient = createWalletClient({
+            walletClient = createWalletClient({
+                chain: hardhat, 
                 transport: custom(window.ethereum),
             });
 

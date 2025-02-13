@@ -5,6 +5,8 @@ import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
 import { Player } from '../model/Player';
 import { Button } from '../components/ui/button';
 import { Team } from '../model/Team';
+import { callRunExecution } from '../services/MatchService';
+import { toHex } from 'viem';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
@@ -97,6 +99,20 @@ const SoccerTeamManager = () => {
     setSelectedPlayerB(null);
   };
 
+  const runMatch = async () => {
+    const payload = {
+      "beacon": {
+        "round": 367,
+        "randomness": "3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f",
+        "signature": "90957ebc0719f8bfb67640aff8ca219bf9f2c5240e60a8711c968d93370d38f87b38ed234a8c63863eb81f234efce55b047478848c0de025527b3d3476dfe860632c1b799550de50a6b9540463e9fb66c8016b89c04a9f52dabdc988e69463c1",
+        "previous_signature": "859504eade86790ad09b2b3474d5e09d1718b549ef7107d7bbd18f5e221765ce8252d7db02664c1f6b20f40c6e8e138704d2acfeb6c5abcc14c77e3a842b2f84515e7366248ca37b1460d23b4f98493c246fbb02851f2a43a710c968a349f8d6"
+      },
+      teamA: team.teamA
+    }
+    const str = JSON.stringify(payload)
+    await callRunExecution(toHex(str))
+  }
+
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
     <div
       className={`flex items-center space-x-2 p-3 rounded-lg shadow cursor-pointer transition-colors ${selectedPlayerA?.id === player.id
@@ -143,6 +159,7 @@ const SoccerTeamManager = () => {
             {team.teamA.name} Squad Management
           </CardTitle>
           <div className="flex items-center space-x-4">
+            <Button onClick={runMatch}>Run Match</Button>
             <Badge variant="secondary" className="text-lg">
               Starting XI
             </Badge>
