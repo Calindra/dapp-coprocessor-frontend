@@ -5,7 +5,7 @@ import { Player } from "../model/Player";
 
 const chance = new Chance();
 
-const CONTRACT_ADDRESS = `0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1`;
+const CONTRACT_ADDRESS = `0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1`;
 
 const abi = [
     {
@@ -93,7 +93,8 @@ export async function getNFTs(collector?: Hex) {
 
     const abi = parseAbi([
         'function getName(uint256 tokenId) external view returns (string)',
-        'function getLevel(uint256 tokenId) external view returns (uint8)'
+        'function getLevel(uint256 tokenId) external view returns (uint8)',
+        'function getXp(uint256 tokenId) external view returns (uint256)',
     ])
     const players: Player[] = []
     for (let i = 0; i < tokenIds.length; i++) {
@@ -110,13 +111,21 @@ export async function getNFTs(collector?: Hex) {
             functionName: 'getLevel',
             args: [tokenId]
         }) as number;
+        const xp = await publicClient.readContract({
+            address: CONTRACT_ADDRESS,
+            abi,
+            functionName: 'getXp',
+            args: [tokenId]
+        });
         players.push({
             id: tokenId.toString(),
             name,
             level,
-            position: ''
-        })
+            position: '',
+            xp,
+        } as any)
     }
+    console.log({ players: players.slice() })
     return players
 }
 

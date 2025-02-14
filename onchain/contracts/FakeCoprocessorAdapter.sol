@@ -31,4 +31,11 @@ contract FakeCoprocessorAdapter {
         }
         emit ResultReceived(payloadHash, notice);
     }
+
+    function nonodoHandleNotice(
+        bytes32 payloadHash,
+        bytes memory notice
+    ) external {
+        handleNotice(payloadHash, notice);
+    }
 }

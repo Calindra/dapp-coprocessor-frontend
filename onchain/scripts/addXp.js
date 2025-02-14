@@ -2,8 +2,8 @@ const { createPublicClient, encodeAbiParameters, http, createWalletClient, parse
 const { privateKeyToAccount } = require('viem/accounts');
 const { hardhat } = require('viem/chains');
 
-const nftPlayersAddress = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
-const fakeCoAdapterAddress = '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9';
+const nftPlayersAddress = '0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1';
+const fakeCoAdapterAddress = '0x68B1D87F95878fE05B998F19b66F4baba5De1aed';
 
 const contractABI = [
   {
