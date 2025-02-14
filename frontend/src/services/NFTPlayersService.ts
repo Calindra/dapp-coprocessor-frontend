@@ -104,15 +104,12 @@ export async function getNFTs(ownerAddress?: Hex) {
     const players: Player[] = []
     for (let i = 0; i < tokenIds.length; i++) {
         const tokenId = tokenIds[i] as any
-        // Call getName function
         const name = await publicClient.readContract({
             address: CONTRACT_ADDRESS,
             abi,
             functionName: 'getName',
             args: [tokenId]
         }) as string;
-
-        // Call getLevel function
         const level = await publicClient.readContract({
             address: CONTRACT_ADDRESS,
             abi,
@@ -126,8 +123,6 @@ export async function getNFTs(ownerAddress?: Hex) {
             position: ''
         })
     }
-
-    console.log('Owned NFTs:', players);
     return players
 }
 
