@@ -9,11 +9,15 @@ import { callRunExecution } from '../services/MatchService';
 import { Hex, toHex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
 import { getWalletClient } from '../services/WalletService';
+import GameResult from '../components/GameResult';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
   const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
+
+  const [goalsA, setGoalsA] = useState('')
+  const [goalsB, setGoalsB] = useState('')
 
   const setSelectedPlayer = (player: Player) => {
     if (selectedPlayerA === null) {
@@ -38,7 +42,7 @@ const SoccerTeamManager = () => {
   }, [])
 
   const findPlayerPos = (team: Team, player: Player) => {
-    if (team.goalkeeper.id === player.id) {
+    if (team.goalkeeper?.id === player.id) {
       return { list: [], index: -2 }
     }
     const indexDef = team.defense.findIndex(p => p.id === player.id)
@@ -100,7 +104,12 @@ const SoccerTeamManager = () => {
       return typeof value === "bigint" ? value.toString() : value;
     };
     const str = JSON.stringify(payload, bigIntSerializer)
-    await callRunExecution(toHex(str))
+    const gameResult = await callRunExecution(toHex(str))
+    if (!gameResult) {
+      return
+    }
+    setGoalsA(`${gameResult.goalsA}`)
+    setGoalsB(`${gameResult.goalsB}`)
   }
 
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
@@ -146,7 +155,8 @@ const SoccerTeamManager = () => {
     for (let i = 0; i < qt; i++) {
       const aux = source.pop();
       if (!aux) {
-        throw new Error("Not enough players");
+        console.warn("Not enough players")
+        return
       }
       dest.push(aux);
     }
@@ -169,18 +179,21 @@ const SoccerTeamManager = () => {
       if (!players) {
         return
       }
-      const goalkeeper = players.pop()
-      if (!goalkeeper) {
-        throw new Error("Not enough players");
-      }
       team.teamA = {
         name: "",
         defense: [],
         middle: [],
         attack: [],
         bench: [],
-        goalkeeper,
+        goalkeeper: null,
       }
+      const goalkeeper = players.pop()
+      if (!goalkeeper) {
+        console.warn("Not enough players")
+        setTeam({ ...team })
+        return
+      }
+
       team.teamA.goalkeeper = goalkeeper
       fillArray(team.teamA.defense, players, 4);
       fillArray(team.teamA.middle, players, 4);
@@ -213,7 +226,9 @@ const SoccerTeamManager = () => {
             <Button onClick={createTeam}>Buy pack(8)</Button>
             <Button onClick={loadTeam}>Load Team</Button>
           </div>
+
         </CardHeader>
+        <GameResult goalsA={goalsA} goalsB={goalsB} />
         <CardContent>
           {/* Goalkeeper */}
           <div className="mb-6">
