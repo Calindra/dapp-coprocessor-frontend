@@ -202,7 +202,9 @@ const SoccerTeamManager = () => {
         <CardContent>
           {/* Goalkeeper */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Goalkeeper</h3>
+            <h3 className="text-lg font-semibold mb-2 flex items-center">
+              Goalkeeper
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {team.teamA?.goalkeeper && (
                 <PlayerCard player={team.teamA?.goalkeeper} position="GK" />
