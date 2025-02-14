@@ -10,14 +10,18 @@ import { Hex, toHex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
 import { getWalletClient } from '../services/WalletService';
 import GameResult from '../components/GameResult';
+import D3TournamentBracket from './D3TournamentBracket';
+import { tournamentService } from '../services/TournamentService';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
   const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
+  const [teamB, setTeamB] = useState('')
 
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
+  const [roundNumber, setRoundNumber] = useState(0)
 
   const setSelectedPlayer = (player: Player) => {
     if (selectedPlayerA === null) {
@@ -38,6 +42,10 @@ const SoccerTeamManager = () => {
           loadPlayers(accounts[0])
         }
       }).catch(e => console.error(e))
+      const currentAdversary = tournamentService.getCurrentAdversary('England', roundNumber)
+      if (currentAdversary) {
+        setTeamB(currentAdversary)
+      }
     }
   }, [])
 
@@ -90,6 +98,12 @@ const SoccerTeamManager = () => {
   };
 
   const runMatch = async () => {
+    const currentAdversary = tournamentService.getCurrentAdversary('England', roundNumber)
+    if (currentAdversary) {
+      setTeamB(currentAdversary)
+      setGoalsA('?')
+      setGoalsB('?')
+    }
     const response = await fetch(`https://api.drand.sh/52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971/public/latest`)
     if (!response.ok) {
       throw new Error(`Drand error: ${response.status}`);
@@ -109,6 +123,15 @@ const SoccerTeamManager = () => {
     }
     setGoalsA(`${gameResult.goalsA}`)
     setGoalsB(`${gameResult.goalsB}`)
+    const currentTeamB = tournamentService.getCurrentAdversary('England', roundNumber)
+    if (!currentTeamB) {
+      console.error(`Logic error!!!`)
+      return
+    }
+    console.log(`Set result by onchain game`, 'England', currentTeamB)
+    tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`, roundNumber)
+    tournamentService.fillMatchesResult(roundNumber)
+    setRoundNumber(roundNumber + 1)
   }
 
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
@@ -218,16 +241,16 @@ const SoccerTeamManager = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl font-bold flex items-center">
             <Users className="mr-2 h-6 w-6" />
-            {team.teamA?.name} Squad Management
+            {team.teamA?.name || 'England'} Squad Management
           </CardTitle>
           <div className="flex items-center space-x-4">
             <Button onClick={runMatch}>Run Match</Button>
             <Button onClick={createTeam}>Buy pack(8)</Button>
             <Button onClick={loadTeam}>Load Team</Button>
           </div>
-
         </CardHeader>
-        <GameResult goalsA={goalsA} goalsB={goalsB} />
+        <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
+        <D3TournamentBracket roundNumber={roundNumber} />
         <CardContent>
           {/* Goalkeeper */}
           <div className="mb-6">
