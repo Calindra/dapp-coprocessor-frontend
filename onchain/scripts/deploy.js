@@ -16,7 +16,7 @@ async function main() {
   const tx = await portal.depositEther(dappAddress, '0x', { value: etherValue })
   await tx.wait()
 
-  for (let collectionIndex = 0; collectionIndex < 16; collectionIndex++) {
+  for (let collectionIndex = 0; collectionIndex < 2; collectionIndex++) {
     const NonFunToken = await hre.ethers.getContractFactory("NFTPlayers");
     console.log('Deploying NFTPlayers...', collectionIndex);
     const token = await NonFunToken.deploy();
@@ -27,12 +27,22 @@ async function main() {
 
     if (collectionIndex > 0) {
       const address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
-      let tx = await nonFunToken.mintNFTs(address, ["Player 1", "Player 2"], "http://localhost:3000/nft-metadata/");
+      let tx = await nonFunToken.mintNFTs(address,
+        [
+          "Player 1",
+          "Player 2",
+          "Player 3",
+        ],
+        "http://localhost:3000/nft-metadata/",
+        {
+          gasLimit: 3_000_000,
+        }
+      );
       await tx.wait();
-      const i = 1
-      const name = await nonFunToken.getName(`${i}`)
-      const level = await nonFunToken.getLevel(`${i}`)
-      console.log({ name, level })
+      // const i = 1
+      // const name = await nonFunToken.getName(`${i}`)
+      // const level = await nonFunToken.getLevel(`${i}`)
+      // console.log({ name, level })
     }
     // for (let i = 0; i < 15; i++) {
     //   console.log(`mint ${i}`)
@@ -45,6 +55,13 @@ async function main() {
     // const url = await nonFunToken.tokenURI("1")
     // console.log(url)
   }
+
+  const FakeCoprocessorAdapter = await hre.ethers.getContractFactory("FakeCoprocessorAdapter");
+  console.log('Deploying FakeCoprocessorAdapter...');
+  const fakeCoAdapter = await FakeCoprocessorAdapter.deploy();
+  await fakeCoAdapter.deployed();
+  await ethers.getContractAt('FakeCoprocessorAdapter', fakeCoAdapter.address);
+  console.log("FakeCoprocessorAdapter deployed to:", fakeCoAdapter.address);
 }
 
 // module.exports = main

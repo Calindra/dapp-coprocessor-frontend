@@ -13,7 +13,7 @@ contract NFTPlayers is ERC721, ERC721Enumerable, Ownable {
 
     address private authority;
     mapping(uint256 => string) private _tokenURIs;
-    mapping(uint256 => uint8) private _levels;
+    mapping(uint256 => uint256) private _xp;
     mapping(uint256 => string) private _names;
     uint256 private _currentTokenId;
 
@@ -59,8 +59,33 @@ contract NFTPlayers is ERC721, ERC721Enumerable, Ownable {
         return _names[tokenId];
     }
 
-    function getLevel(uint256 tokenId) external view returns (uint8) {
-        return _levels[tokenId];
+    function getLevel(uint256 tokenId) public view returns (uint32) {
+        uint256 xp = _xp[tokenId];
+        return calculateLevel(xp);
+    }
+
+    function getXp(uint256 tokenId) public view returns (uint256) {
+        return _xp[tokenId];
+    }
+
+    function calculateLevel(uint256 xp) public pure returns (uint32) {
+        uint32 level = 1;
+        uint256 requiredXp = 0;
+        while (xp >= requiredXp) {
+            if (requiredXp + level * 100 < requiredXp) {
+                return level;
+            }
+            level++;
+            requiredXp += level * 100; // D&D-like XP requirement
+        }
+        return level - 1;
+    }
+
+    /**
+     * we need to protect this method
+     */
+    function addXp(uint256 tokenId, uint256 amount) public {
+        _xp[tokenId] += amount;
     }
 
     /**
@@ -89,7 +114,18 @@ contract NFTPlayers is ERC721, ERC721Enumerable, Ownable {
             tokenId = totalSupply(); // Gets the next token ID based on current supply
             _safeMint(collector, tokenId);
             _tokenURIs[tokenId] = baseTokenURI;
-            _levels[tokenId] = this.getRandomNumber(tokenId);
+            uint8 lvl = this.getRandomNumber(tokenId);
+            if (lvl == 1) {
+                _xp[tokenId] = 1;
+            } else if (lvl == 2) {
+                _xp[tokenId] = 100;
+            } else if (lvl == 3) {
+                _xp[tokenId] = 300;
+            } else if (lvl == 4) {
+                _xp[tokenId] = 600;
+            } else {
+                _xp[tokenId] = 1000;
+            }
             _names[tokenId] = names[i];
         }
     }
@@ -108,7 +144,19 @@ contract NFTPlayers is ERC721, ERC721Enumerable, Ownable {
 
         _safeMint(collector, newTokenId);
         _tokenURIs[newTokenId] = _tokenURI;
-        _levels[newTokenId] = this.getRandomNumber(newTokenId);
+        uint8 lvl = this.getRandomNumber(newTokenId);
+        if (lvl == 1) {
+            _xp[newTokenId] = 1;
+        } else if (lvl == 2) {
+            _xp[newTokenId] = 100;
+        } else if (lvl == 3) {
+            _xp[newTokenId] = 300;
+        } else if (lvl == 4) {
+            _xp[newTokenId] = 600;
+        } else {
+            _xp[newTokenId] = 1000;
+        }
+
         _names[newTokenId] = name;
 
         return newTokenId; // Return the newly minted token ID
