@@ -17,7 +17,7 @@ export async function connectMetaMask() {
     if (typeof window.ethereum !== 'undefined') {
         try {
             walletClient = createWalletClient({
-                chain: hardhat, 
+                chain: hardhat,
                 transport: custom(window.ethereum),
             });
 
@@ -35,5 +35,8 @@ export async function connectMetaMask() {
     }
 }
 
-// Call this function when the user clicks a "Connect" button
-// connectMetaMask();
+try {
+    connectMetaMask();
+} catch (e) {
+    console.error(e)
+}
