@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
@@ -8,42 +8,12 @@ import { Team } from '../model/Team';
 import { callRunExecution } from '../services/MatchService';
 import { toHex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
+import { getWalletClient } from '../services/WalletService';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
-  const [team, setTeam] = useState({
-    teamA: {
-      name: "Botafogo",
-      goalkeeper: {
-        name: "Bruno 1",
-        level: 5,
-        id: "gk1"
-      },
-      defense: [
-        { name: "Oshiro 2", level: 3, id: "def1" },
-        { name: "Garry 3", level: 3, id: "def2" },
-        { name: "Léo 4", level: 3, id: "def3" },
-        { name: "Catarino 5", level: 3, id: "def4" }
-      ],
-      middle: [
-        { name: "Sandhilt 6", level: 3, id: "mid1" },
-        { name: "Madeira 7", level: 3, id: "mid2" },
-        { name: "Coutinho 8", level: 3, id: "mid3" },
-        { name: "Ghiggino 9", level: 3, id: "mid4" }
-      ],
-      attack: [
-        { name: "Milton 10", level: 3, id: "atk1" },
-        { name: "Felipe 11", level: 3, id: "atk2" }
-      ],
-      bench: [
-        { name: "Felipe 12", level: 2, position: "GK", id: "bench1" },
-        { name: "Pedro 13", level: 2, position: "DEF", id: "bench2" },
-        { name: "Carlos 14", level: 2, position: "MID", id: "bench3" },
-        { name: "Miguel 15", level: 2, position: "ATK", id: "bench4" },
-      ]
-    }
-  });
+  const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
 
   const setSelectedPlayer = (player: Player) => {
     if (selectedPlayerA === null) {
@@ -55,6 +25,13 @@ const SoccerTeamManager = () => {
       return
     }
   }
+
+  useEffect(() => {
+    const wallet = getWalletClient()
+    if (wallet) {
+      loadPlayers()
+    }
+  }, [])
 
   const findPlayerPos = (team: Team, player: Player) => {
     if (team.goalkeeper.id === player.id) {
@@ -79,6 +56,10 @@ const SoccerTeamManager = () => {
   }
 
   const handlePositionChange = (playerA: Player, playerB: Player) => {
+    if (!team.teamA) {
+      alert(`Please load or buy your team.`)
+      return
+    }
     const posA = findPlayerPos(team.teamA, playerA)
     if (!posA) {
       return
@@ -108,7 +89,8 @@ const SoccerTeamManager = () => {
         "signature": "90957ebc0719f8bfb67640aff8ca219bf9f2c5240e60a8711c968d93370d38f87b38ed234a8c63863eb81f234efce55b047478848c0de025527b3d3476dfe860632c1b799550de50a6b9540463e9fb66c8016b89c04a9f52dabdc988e69463c1",
         "previous_signature": "859504eade86790ad09b2b3474d5e09d1718b549ef7107d7bbd18f5e221765ce8252d7db02664c1f6b20f40c6e8e138704d2acfeb6c5abcc14c77e3a842b2f84515e7366248ca37b1460d23b4f98493c246fbb02851f2a43a710c968a349f8d6"
       },
-      teamA: team.teamA
+      teamA: team.teamA,
+      reqId:  crypto.randomUUID(),
     }
     const str = JSON.stringify(payload)
     await callRunExecution(toHex(str))
@@ -137,46 +119,65 @@ const SoccerTeamManager = () => {
     </div>
   );
 
-  const PositionSection = ({ title, players, position }: { title: string, players: Player[], position: string }) => (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-2 flex items-center">
-        <span className="mr-2">{title}</span>
-        <Badge variant="secondary">{players.length}</Badge>
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {players.map((player, _index) => (
-          <PlayerCard key={player.id} player={player} position={position} />
-        ))}
+  const PositionSection = ({ title, players, position }: { title: string, players: Player[] | undefined, position: string }) => {
+    return (
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2 flex items-center">
+          <span className="mr-2">{title}</span>
+          <Badge variant="secondary">{players?.length || 0}</Badge>
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {players?.map((player, _index) => (
+            <PlayerCard key={player.id} player={player} position={position} />
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    )
+  };
 
-  const loadNFTs = async () => {
-    
-    const players = await getNFTs()
-    if (!players) {
-      return
+  const fillArray = (dest: Player[], source: Player[], qt: number): void => {
+    for (let i = 0; i < qt; i++) {
+      const aux = source.pop();
+      if (!aux) {
+        throw new Error("Not enough players");
+      }
+      dest.push(aux);
     }
-    team.teamA.defense = []
-    team.teamA.middle = []
-    team.teamA.attack = []
-    team.teamA.bench = []
-    team.teamA.goalkeeper = players.pop() as any
-    for (let i = 0; i < 4; i++) {
-      team.teamA.defense.push(players.pop() as any)
+  };
+
+  const loadPlayers = async () => {
+    try {
+      const players = await getNFTs()
+      if (!players) {
+        return
+      }
+      const goalkeeper = players.pop()
+      if (!goalkeeper) {
+        throw new Error("Not enough players");
+      }
+      team.teamA = {
+        name: "",
+        defense: [],
+        middle: [],
+        attack: [],
+        bench: [],
+        goalkeeper,
+      }
+      team.teamA.goalkeeper = goalkeeper
+      fillArray(team.teamA.defense, players, 4);
+      fillArray(team.teamA.middle, players, 4);
+      fillArray(team.teamA.attack, players, 2);
+      for (const player of players) {
+        team.teamA.bench.push(player as any)
+      }
+      setTeam({ ...team })
+    } catch (e) {
+      console.error(e)
+      setTeam({ ...team })
+      alert((e as any).message)
     }
-    for (let i = 0; i < 4; i++) {
-      team.teamA.middle.push(players.pop() as any)
-    }
-    for (let i = 0; i < 2; i++) {
-      team.teamA.attack.push(players.pop() as any)
-    }
-    for (const player of players) {
-      team.teamA.bench.push(player as any)
-    }
-    setTeam({...team})
   }
-  
+
   const createTeam = async () => {
     await mintNFTs()
   }
@@ -187,12 +188,12 @@ const SoccerTeamManager = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl font-bold flex items-center">
             <Users className="mr-2 h-6 w-6" />
-            {team.teamA.name} Squad Management
+            {team.teamA?.name} Squad Management
           </CardTitle>
           <div className="flex items-center space-x-4">
             <Button onClick={runMatch}>Run Match</Button>
-            <Button onClick={createTeam}>Create Team</Button>
-            <Button onClick={loadNFTs}>Load Team</Button>
+            <Button onClick={createTeam}>Buy pack(8)</Button>
+            <Button onClick={loadPlayers}>Load Team</Button>
             <Badge variant="secondary" className="text-lg">
               Starting XI
             </Badge>
@@ -203,8 +204,8 @@ const SoccerTeamManager = () => {
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-2">Goalkeeper</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {team.teamA.goalkeeper && (
-                <PlayerCard player={team.teamA.goalkeeper} position="GK" />
+              {team.teamA?.goalkeeper && (
+                <PlayerCard player={team.teamA?.goalkeeper} position="GK" />
               )}
             </div>
           </div>
@@ -212,21 +213,21 @@ const SoccerTeamManager = () => {
           {/* Defense */}
           <PositionSection
             title="Defense"
-            players={team.teamA.defense}
+            players={team.teamA?.defense}
             position="DEF"
           />
 
           {/* Midfield */}
           <PositionSection
             title="Midfield"
-            players={team.teamA.middle}
+            players={team.teamA?.middle}
             position="MID"
           />
 
           {/* Attack */}
           <PositionSection
             title="Attack"
-            players={team.teamA.attack}
+            players={team.teamA?.attack}
             position="ATK"
           />
 
@@ -237,7 +238,7 @@ const SoccerTeamManager = () => {
               Bench Players
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {team.teamA.bench.map((player) => (
+              {team.teamA?.bench.map((player) => (
                 <PlayerCard key={player.id} player={player} position={player.position} />
               ))}
             </div>

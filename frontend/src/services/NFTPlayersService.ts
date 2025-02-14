@@ -5,7 +5,7 @@ import { Player } from "../model/Player";
 
 const chance = new Chance();
 
-const CONTRACT_ADDRESS = `0xf4B146FbA71F41E0592668ffbF264F1D186b2Ca8`;
+const CONTRACT_ADDRESS = `0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1`;
 
 const abi = [
     {
@@ -121,7 +121,9 @@ export async function getNFTs(ownerAddress?: Hex) {
         }) as number;
         players.push({
             id: tokenId.toString(),
-            name, level
+            name,
+            level,
+            position: ''
         })
     }
 
@@ -151,7 +153,7 @@ export async function mintNFTs() {
     const publicClient = createPublicClient({ chain, transport: http() })
     const names = []
     for (let i = 0; i < 8; i++) {
-        names.push(chance.name())
+        names.push(chance.name({ gender: 'male' }))
     }
     const { request } = await publicClient.simulateContract({
         account,
