@@ -27,6 +27,7 @@ export async function connectMetaMask() {
             // Get the current chain ID
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
             console.log('Connected to chain:', parseInt(chainId, 16));
+            localStorage.setItem("connectedAccount", account);
         } catch (error) {
             console.error('Error connecting to MetaMask:', error);
         }
@@ -35,8 +36,24 @@ export async function connectMetaMask() {
     }
 }
 
-try {
-    connectMetaMask();
-} catch (e) {
-    console.error(e)
-}
+window.ethereum?.on("accountsChanged", (accounts: string[]) => {
+    if (accounts.length > 0) {
+        console.log("Switched account:", accounts[0]);
+        localStorage.setItem("connectedAccount", accounts[0]);
+    } else {
+        console.log("Disconnected");
+        localStorage.removeItem("connectedAccount");
+    }
+});
+
+window.addEventListener("DOMContentLoaded", async () => {
+    const savedAccount = localStorage.getItem("connectedAccount");
+    if (savedAccount) {
+        console.log("Restoring connection for:", savedAccount);
+        try {
+            connectMetaMask();
+        } catch (e) {
+            console.error(e)
+        }
+    }
+});
