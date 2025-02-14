@@ -1,2 +1,2 @@
-onchain/yarn.lock
-frontend/yarn.lock
+yarn.lock
+pnpm-lock.yaml
