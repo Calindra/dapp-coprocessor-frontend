@@ -103,6 +103,17 @@ const SoccerTeamManager = () => {
       setTeamB(currentAdversary)
       setGoalsA('?')
       setGoalsB('?')
+    } else {
+      if (confirm('Restart?')) {
+        tournamentService.initialize()
+        setRoundNumber(0)
+        setTeamB('')
+        setGoalsA('')
+        setGoalsB('')
+        return
+      } else {
+        return
+      }
     }
     const response = await fetch(`https://api.drand.sh/52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971/public/latest`)
     if (!response.ok) {
