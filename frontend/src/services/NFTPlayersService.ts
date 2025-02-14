@@ -125,7 +125,10 @@ export async function getNFTs(collector?: Hex) {
             xp,
         } as any)
     }
-    console.log({ players: players.slice() })
+    // const bigIntSerializer = (_key: any, value: any) => {
+    //     return typeof value === "bigint" ? value.toString() : value;
+    // };
+    // console.log(JSON.stringify(players, bigIntSerializer, 4))
     return players
 }
 

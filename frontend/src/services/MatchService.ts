@@ -1,12 +1,7 @@
-import { createPublicClient, http, parseAbi, Hex } from 'viem';
+import { createPublicClient, http, parseAbi, Hex, parseAbiItem, decodeAbiParameters } from 'viem';
 import { getWalletClient } from './WalletService';
+import config from '../config/Config';
 
-// Replace with your contract address
-const contractAddress = '0x95401dc811bb5740090279Ba06cfA8fcF6113778';
-const nonodoDappAddress = '0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e';
-const inputBoxAddress = '0x59b22D57D4f067708AB0c00552767405926dc768';
-
-// ABI for `runExecution`
 const contractAbi = parseAbi([
     "function runExecution(bytes input) external"
 ]);
@@ -14,8 +9,9 @@ const contractAbi = parseAbi([
 const contractInputBoxAbi = parseAbi([
     "function addInput(address appContract, bytes calldata payload)"
 ]);
+
 const useCoprocessor = false
-// Function to call `runExecution`
+
 export async function callRunExecution(inputData: Hex) {
     try {
         const walletClient = getWalletClient()
@@ -31,7 +27,7 @@ export async function callRunExecution(inputData: Hex) {
         const { chain } = walletClient as any;
         if (useCoprocessor) {
             const { request } = await createPublicClient({ chain, transport: http() }).simulateContract({
-                address: contractAddress,
+                address: config.taskContractAddress,
                 abi: contractAbi,
                 functionName: 'runExecution',
                 args: [inputData],
@@ -42,17 +38,69 @@ export async function callRunExecution(inputData: Hex) {
             console.log('Transaction sent:', txHash);
         } else {
             const { request } = await createPublicClient({ chain, transport: http() }).simulateContract({
-                address: inputBoxAddress,
+                address: config.inputBoxAddress,
                 abi: contractInputBoxAbi,
                 functionName: 'addInput',
-                args: [nonodoDappAddress, inputData],
+                args: [config.nonodoDappAddress, inputData],
                 account,
                 gas: BigInt(2_000_000),
             });
             const txHash = await walletClient.writeContract(request as any);
             console.log('Transaction sent:', txHash);
         }
+        watchEvent();
     } catch (error) {
         console.error('Error calling runExecution:', error);
     }
 }
+
+export async function watchEvent() {
+    const walletClient = getWalletClient()
+    if (!walletClient) {
+        console.log(`No wallet connected`)
+        return
+    }
+    const { chain } = walletClient as any;
+    const client = createPublicClient({ chain, transport: http() })
+    const unwatch = client.watchEvent({
+        address: config.coprocessorAdapter,
+        event: parseAbiItem('event ResultReceived(bytes32 payloadHash, bytes output)'),
+        onLogs: (logs: any) => {
+            console.log('>>> Event detected:', logs.length);
+            for (const log of logs) {
+                try {
+                    const [payloadHash, output] = decodeAbiParameters(
+                        [
+                            { type: 'bytes32' },
+                            { type: 'bytes' }
+                        ],
+                        log.data
+                    );
+                    const decodedOutput = decodeAbiParameters(
+                        [
+                            { type: 'uint256[]' },
+                            { type: 'uint256[]' },
+                            { type: 'uint32' },
+                            { type: 'uint32' }
+                        ],
+                        output
+                    ) as any;
+                    const tokenIds = decodedOutput[0] as bigint[];
+                    const xpAmounts = decodedOutput[1] as bigint[];
+                    const value1 = decodedOutput[2] as number | undefined; // Handle undefined case
+                    const value2 = decodedOutput[3] as number | undefined; // Handle undefined case
+
+                    console.log('Token IDs:', tokenIds);
+                    console.log('XP Amounts:', xpAmounts);
+                    console.log('Value 1 (uint32):', value1);
+                    console.log('Value 2 (uint32):', value2);
+                } catch (e) {
+                    console.error(e)
+                }
+            }
+        },
+    });
+    console.log(`Listening events for coprocessorAdapter=${config.coprocessorAdapter}`)
+    return { unwatch }
+}
+

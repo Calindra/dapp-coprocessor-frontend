@@ -96,7 +96,10 @@ const SoccerTeamManager = () => {
       teamA: team.teamA,
       reqId: crypto.randomUUID(),
     }
-    const str = JSON.stringify(payload)
+    const bigIntSerializer = (_key: any, value: any) => {
+      return typeof value === "bigint" ? value.toString() : value;
+    };
+    const str = JSON.stringify(payload, bigIntSerializer)
     await callRunExecution(toHex(str))
   }
 
