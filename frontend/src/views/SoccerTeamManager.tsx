@@ -6,7 +6,7 @@ import { Player } from '../model/Player';
 import { Button } from '../components/ui/button';
 import { Team } from '../model/Team';
 import { callRunExecution } from '../services/MatchService';
-import { toHex } from 'viem';
+import { Hex, toHex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
 import { getWalletClient } from '../services/WalletService';
 
@@ -29,7 +29,11 @@ const SoccerTeamManager = () => {
   useEffect(() => {
     const wallet = getWalletClient()
     if (wallet) {
-      loadPlayers()
+      wallet.requestAddresses().then(accounts => {
+        if (accounts.length) {
+          loadPlayers(accounts[0])
+        }
+      }).catch(e => console.error(e))
     }
   }, [])
 
@@ -90,7 +94,7 @@ const SoccerTeamManager = () => {
         "previous_signature": "859504eade86790ad09b2b3474d5e09d1718b549ef7107d7bbd18f5e221765ce8252d7db02664c1f6b20f40c6e8e138704d2acfeb6c5abcc14c77e3a842b2f84515e7366248ca37b1460d23b4f98493c246fbb02851f2a43a710c968a349f8d6"
       },
       teamA: team.teamA,
-      reqId:  crypto.randomUUID(),
+      reqId: crypto.randomUUID(),
     }
     const str = JSON.stringify(payload)
     await callRunExecution(toHex(str))
@@ -145,9 +149,20 @@ const SoccerTeamManager = () => {
     }
   };
 
-  const loadPlayers = async () => {
+  const loadTeam = async () => {
+    const wallet = getWalletClient()
+    if (wallet) {
+      wallet.requestAddresses().then(accounts => {
+        if (accounts.length) {
+          loadPlayers(accounts[0])
+        }
+      }).catch(e => console.error(e))
+    }
+  }
+
+  const loadPlayers = async (account: string) => {
     try {
-      const players = await getNFTs()
+      const players = await getNFTs(account as Hex)
       if (!players) {
         return
       }
@@ -193,10 +208,7 @@ const SoccerTeamManager = () => {
           <div className="flex items-center space-x-4">
             <Button onClick={runMatch}>Run Match</Button>
             <Button onClick={createTeam}>Buy pack(8)</Button>
-            <Button onClick={loadPlayers}>Load Team</Button>
-            <Badge variant="secondary" className="text-lg">
-              Starting XI
-            </Badge>
+            <Button onClick={loadTeam}>Load Team</Button>
           </div>
         </CardHeader>
         <CardContent>

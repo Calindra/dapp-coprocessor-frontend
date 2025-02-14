@@ -75,18 +75,12 @@ const getNFTsABI = [
     }
 ];
 
-export async function getNFTs(ownerAddress?: Hex) {
+export async function getNFTs(collector?: Hex) {
     const walletClient = getWalletClient()
     if (!walletClient) {
         alert('Please connect your wallet')
         return
     }
-    const [account] = await walletClient.requestAddresses();
-    if (!account) {
-        alert('No account found. Please connect your wallet.');
-        return;
-    }
-    const collector = ownerAddress ?? account
     const { chain } = walletClient as any;
     console.log({ collector, chain })
     const publicClient = createPublicClient({ chain, transport: http() })
