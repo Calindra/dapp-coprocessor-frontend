@@ -12,6 +12,7 @@ import { getWalletClient } from '../services/WalletService';
 import GameResult from '../components/GameResult';
 import D3TournamentBracket from './D3TournamentBracket';
 import { tournamentService } from '../services/TournamentService';
+import fireworks from '../services/Fireworks';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
@@ -154,6 +155,12 @@ const SoccerTeamManager = () => {
     tournamentService.fillMatchesResult()
     const newRound = tournamentService.incRound();
     setRoundNumber(newRound)
+    if (newRound > 3 && (gameResult.goalsA ?? 0) >= (gameResult.goalsB ?? 0)) {
+      fireworks()
+      setTimeout(() => fireworks(), 400)
+      setTimeout(() => fireworks(), 500)
+      setTimeout(() => fireworks(), 800)
+    }
   }
 
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
