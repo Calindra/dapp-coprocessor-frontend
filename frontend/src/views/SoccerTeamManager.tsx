@@ -18,7 +18,7 @@ const SoccerTeamManager = () => {
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
   const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
   const [teamB, setTeamB] = useState('')
-  const [showTournament, setShowTournament] = useState(true)
+  const [showTournament, setShowTournament] = useState(false)
 
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
