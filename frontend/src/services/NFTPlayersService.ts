@@ -49,7 +49,7 @@ export async function mintNFT() {
     const tokenURI = "https://example.com/metadata/"; // Replace with actual metadata URL
     const name = chance.name();
 
-    const client = createPublicClient({ chain, transport: http() })
+    const client = createPublicClient({ chain, transport: http(config.rpcUrl) })
 
     const { request } = await client.simulateContract({
         account,
@@ -74,6 +74,41 @@ const getNFTsABI = [
     }
 ];
 
+const publicClient = createPublicClient({ chain: config.chain, transport: http(config.rpcUrl) })
+
+let cachedNames: Record<any, string> | undefined = undefined
+
+const levelXpNameABI = parseAbi([
+    'function getName(uint256 tokenId) external view returns (string)',
+    'function getLevel(uint256 tokenId) external view returns (uint8)',
+    'function getXp(uint256 tokenId) external view returns (uint256)',
+])
+
+async function getName(tokenId: any) {
+    if (!cachedNames) {
+        const json = localStorage.getItem('cachedNames')
+        if (json) {
+            cachedNames = JSON.parse(json)
+        } else {
+            cachedNames = {}
+        }
+    }
+    const cachedName = cachedNames![`${tokenId}`];
+    if (cachedName) {
+        return cachedName
+    }
+    console.log(`Getting name for ${tokenId}`)
+    const name = await publicClient.readContract({
+        address: config.nftPlayersContractAddress,
+        abi: levelXpNameABI,
+        functionName: 'getName',
+        args: [tokenId]
+    }) as string;
+    cachedNames![`${tokenId}`] = name
+    localStorage.setItem('cachedNames', JSON.stringify(cachedNames))
+    return name
+}
+
 export async function getNFTs(collector?: Hex) {
     try {
         const walletClient = getWalletClient()
@@ -83,46 +118,35 @@ export async function getNFTs(collector?: Hex) {
         }
         const { chain } = walletClient as any;
         console.log({ collector, chain })
-        const publicClient = createPublicClient({ chain, transport: http() })
+        const publicClient = createPublicClient({ chain, transport: http(config.rpcUrl) })
         const tokenIds = await publicClient.readContract({
             address: config.nftPlayersContractAddress,
             abi: getNFTsABI,
             functionName: 'getAllTokens',
             args: [collector],
         }) as number[];
-
-        const abi = parseAbi([
-            'function getName(uint256 tokenId) external view returns (string)',
-            'function getLevel(uint256 tokenId) external view returns (uint8)',
-            'function getXp(uint256 tokenId) external view returns (uint256)',
-        ])
         const players: Player[] = []
         for (let i = 0; i < tokenIds.length; i++) {
             const tokenId = tokenIds[i] as any
-            const name = await publicClient.readContract({
-                address: config.nftPlayersContractAddress,
-                abi,
-                functionName: 'getName',
-                args: [tokenId]
-            }) as string;
+            const name = await getName(tokenId)
             const level = await publicClient.readContract({
                 address: config.nftPlayersContractAddress,
-                abi,
+                abi: levelXpNameABI,
                 functionName: 'getLevel',
                 args: [tokenId]
             }) as number;
-            const xp = await publicClient.readContract({
-                address: config.nftPlayersContractAddress,
-                abi,
-                functionName: 'getXp',
-                args: [tokenId]
-            });
+            // const xp = await publicClient.readContract({
+            //     address: config.nftPlayersContractAddress,
+            //     abi,
+            //     functionName: 'getXp',
+            //     args: [tokenId]
+            // });
             players.push({
                 id: tokenId.toString(),
                 name,
                 level,
                 position: '',
-                xp,
+                // xp,
             } as any)
         }
         // const bigIntSerializer = (_key: any, value: any) => {
@@ -158,7 +182,7 @@ export async function mintNFTs() {
     }
     const { chain } = walletClient as any;
     console.log(`mintNFTs`, { contract: config.nftPlayersContractAddress, account, chain })
-    const publicClient = createPublicClient({ chain, transport: http() })
+    const publicClient = createPublicClient({ chain, transport: http(config.rpcUrl) })
     const names = []
     for (let i = 0; i < 8; i++) {
         names.push(chance.name({ gender: 'male' }))

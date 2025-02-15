@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "deploy": "hardhat run --network localhost scripts/deploy.js",
+    "deploy:holesky": "hardhat run --network holesky scripts/deploy.js",
     "addXp": "hardhat run --network localhost scripts/addXp.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

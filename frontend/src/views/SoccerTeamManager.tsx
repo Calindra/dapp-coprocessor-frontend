@@ -203,7 +203,7 @@ const SoccerTeamManager = () => {
     for (let i = 0; i < qt; i++) {
       const aux = source.pop();
       if (!aux) {
-        console.warn("Not enough players")
+        console.warn("Not enough players", qt)
         return
       }
       dest.push(aux);
@@ -237,7 +237,7 @@ const SoccerTeamManager = () => {
       }
       const goalkeeper = players.pop()
       if (!goalkeeper) {
-        console.warn("Not enough players")
+        console.warn("Not enough players", players.length)
         setTeam({ ...team })
         return
       }

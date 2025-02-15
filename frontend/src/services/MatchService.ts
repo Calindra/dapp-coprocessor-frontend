@@ -13,7 +13,6 @@ const contractInputBoxAbi = parseAbi([
     "function addInput(address appContract, bytes calldata payload)"
 ]);
 
-const useCoprocessor = false
 
 export function countPlayers(team?: Team | null) {
     if (!team) {
@@ -40,9 +39,9 @@ export async function callRunExecution(req: RunMatchRequest) {
             return;
         }
         const { chain } = walletClient as any;
-        if (useCoprocessor) {
-            const { request } = await createPublicClient({ chain, transport: http() }).simulateContract({
-                address: config.taskContractAddress,
+        if (config.useCoprocessor) {
+            const { request } = await createPublicClient({ chain, transport: http(config.rpcUrl) }).simulateContract({
+                address: config.coprocessorAdapter,
                 abi: contractAbi,
                 functionName: 'runExecution',
                 args: [inputData],
@@ -52,7 +51,7 @@ export async function callRunExecution(req: RunMatchRequest) {
             const txHash = await walletClient.writeContract(request as any);
             console.log('Transaction sent:', txHash);
         } else {
-            const { request } = await createPublicClient({ chain, transport: http() }).simulateContract({
+            const { request } = await createPublicClient({ chain, transport: http(config.rpcUrl) }).simulateContract({
                 address: config.inputBoxAddress,
                 abi: contractInputBoxAbi,
                 functionName: 'addInput',
@@ -78,7 +77,7 @@ export async function watchEvent(reqId: string): Promise<GameResult> {
             return
         }
         const { chain } = walletClient as any;
-        const client = createPublicClient({ chain, transport: http() })
+        const client = createPublicClient({ chain, transport: http(config.rpcUrl) })
         const unwatch = client.watchEvent({
             address: config.coprocessorAdapter,
             event: parseAbiItem('event ResultReceived(bytes32 payloadHash, bytes output)'),

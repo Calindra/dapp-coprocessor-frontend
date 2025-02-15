@@ -10,5 +10,8 @@ module.exports = {
     hardhat: {
       // See its defaults
     },
+    holesky: {
+      url: "https://1rpc.io/holesky"
+    }
   }
 };

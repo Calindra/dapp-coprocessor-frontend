@@ -4,17 +4,17 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const provider = ethers.getDefaultProvider("http://localhost:8545");
-  const pk = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
-  const signer = new ethers.Wallet(pk, provider);
+  // const provider = ethers.getDefaultProvider("http://localhost:8545");
+  // const pk = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
+  // const signer = new ethers.Wallet(pk, provider);
 
-  const dappAddress = '0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e'
+  // const dappAddress = '0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e'
 
-  const portalAddress = '0xFfdbe43d4c855BF7e0f105c400A50857f53AB044'
-  const etherValue = '10000000000000000'
-  const portal = EtherPortal__factory.connect(portalAddress, signer)
-  const tx = await portal.depositEther(dappAddress, '0x', { value: etherValue })
-  await tx.wait()
+  // const portalAddress = '0xFfdbe43d4c855BF7e0f105c400A50857f53AB044'
+  // const etherValue = '10000000000000000'
+  // const portal = EtherPortal__factory.connect(portalAddress, signer)
+  // const tx = await portal.depositEther(dappAddress, '0x', { value: etherValue })
+  // await tx.wait()
 
   for (let collectionIndex = 0; collectionIndex < 2; collectionIndex++) {
     const NonFunToken = await hre.ethers.getContractFactory("NFTPlayers");
