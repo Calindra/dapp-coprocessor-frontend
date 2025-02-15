@@ -13,6 +13,7 @@ import GameResult from '../components/GameResult';
 import D3TournamentBracket from './D3TournamentBracket';
 import { tournamentService } from '../services/TournamentService';
 import fireworks from '../services/Fireworks';
+import { RunMatchRequest } from '../model/RunMatchRequest';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
@@ -130,16 +131,12 @@ const SoccerTeamManager = () => {
     if (!response.ok) {
       throw new Error(`Drand error: ${response.status}`);
     }
-    const payload = {
+    const payload: RunMatchRequest = {
       beacon: await response.json(),
-      teamA: team.teamA,
+      teamA: team.teamA!,
       reqId: crypto.randomUUID(),
     }
-    const bigIntSerializer = (_key: any, value: any) => {
-      return typeof value === "bigint" ? value.toString() : value;
-    };
-    const str = JSON.stringify(payload, bigIntSerializer)
-    const gameResult = await callRunExecution(toHex(str))
+    const gameResult = await callRunExecution(payload)
     if (!gameResult) {
       return
     }
