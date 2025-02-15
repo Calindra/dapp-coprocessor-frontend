@@ -130,7 +130,7 @@ const SoccerTeamManager = () => {
       throw new Error(`Drand error: ${response.status}`);
     }
     const payload = {
-      beacon: response.json(),
+      beacon: await response.json(),
       teamA: team.teamA,
       reqId: crypto.randomUUID(),
     }
