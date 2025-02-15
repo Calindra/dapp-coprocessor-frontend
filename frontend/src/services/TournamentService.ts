@@ -1,10 +1,13 @@
-import { Match, TournamentBracket } from "../model/Match";
+import { Match, TournamentBracket } from "../model/TournamentBracket";
 
 const nullGoals = '?'
 
 class TournamentService {
+    cachedMatches: TournamentBracket | undefined
+
     initialize() {
         const matches: TournamentBracket = {
+            round: 0,
             roundOf16Left: [
                 { teamA: "Brazil", goalsA: nullGoals, teamB: "Argentina", goalsB: nullGoals },
                 { teamA: "France", goalsA: nullGoals, teamB: "Germany", goalsB: nullGoals },
@@ -37,12 +40,13 @@ class TournamentService {
             }
         };
         localStorage.setItem('matches', JSON.stringify(matches))
+        this.cachedMatches = matches
         return matches
     }
 
-    setResult(teamA: string, teamB: string, goalsA: string, goalsB: string, roundNumber: number) {
+    setResult(teamA: string, teamB: string, goalsA: string, goalsB: string, skipSave?: boolean) {
         const matches = this.getMatches();
-
+        const roundNumber = matches.round;
         // Define all rounds in an array for indexed access
         const rounds: (Match[] | Match)[] = [
             matches.roundOf16Left.concat(matches.roundOf16Right),
@@ -100,9 +104,9 @@ class TournamentService {
     }
 
 
-    fillMatchesResult(roundNumber: number) {
+    fillMatchesResult() {
         const matches = this.getMatches();
-
+        const roundNumber = matches.round;
         // Define all rounds in an array for indexed access
         const rounds: (Match[] | Match)[] = [
             matches.roundOf16Left.concat(matches.roundOf16Right),
@@ -116,20 +120,30 @@ class TournamentService {
             console.warn(`Invalid round number: ${roundNumber}`);
             return;
         }
-
         const round = rounds[roundNumber] as Match[];
         for (const match of round) {
             if (match.goalsA === nullGoals && match.goalsB === nullGoals) {
-                console.log(`setResult`, match.teamA, match.teamB)
-                this.setResult(match.teamA, match.teamB, `${Math.floor(Math.random() * 5)}`, `${Math.floor(Math.random() * 5)}`, roundNumber)
+                console.log(`setResult`, match.teamA, match.teamB, matches.round, roundNumber)
+                this.setResult(match.teamA, match.teamB, `${Math.floor(Math.random() * 5)}`, `${Math.floor(Math.random() * 5)}`, true)
             }
         }
+        localStorage.setItem('matches', JSON.stringify(matches));
+    }
+
+    incRound() {
+        const matches = this.getMatches();
+        matches.round ++;
+        localStorage.setItem('matches', JSON.stringify(matches));
+        return matches.round;
     }
 
     getMatches(_round?: number): TournamentBracket {
+        if (this.cachedMatches) {
+            return this.cachedMatches
+        }
         const json = localStorage.getItem('matches')
         if (json) {
-            return JSON.parse(json)
+            return this.cachedMatches = JSON.parse(json)
         }
         return this.initialize()
     }
@@ -168,9 +182,9 @@ class TournamentService {
         return null; // Next opponent is not yet set
     }
 
-    getCurrentAdversary(team: string, roundNumber: number): string | null {
+    getCurrentAdversary(team: string): string | null {
         const matches = this.getMatches();
-
+        const roundNumber = matches.round;
         const rounds: (Match[] | Match)[] = [
             matches.roundOf16Left.concat(matches.roundOf16Right),
             matches.quarterFinalsLeft.concat(matches.quarterFinalsRight),
@@ -183,7 +197,7 @@ class TournamentService {
         }
 
         const currentRound = rounds[roundNumber] as Match[];
-
+        if (!currentRound) return null;
         const match = currentRound.find(m => m.teamA === team || m.teamB === team);
         if (!match) return null;
 

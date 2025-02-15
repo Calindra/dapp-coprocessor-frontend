@@ -2,6 +2,7 @@ import { createPublicClient, http, parseAbi, Hex, parseAbiItem, decodeAbiParamet
 import { getWalletClient } from './WalletService';
 import config from '../config/Config';
 import { GameResult } from '../model/GameResult';
+import { Team } from '../model/Team';
 
 const contractAbi = parseAbi([
     "function runExecution(bytes input) external"
@@ -12,6 +13,13 @@ const contractInputBoxAbi = parseAbi([
 ]);
 
 const useCoprocessor = false
+
+export function countPlayers(team?: Team | null) {
+    if (!team) {
+        return 0
+    }
+    return team.attack.length + team.defense.length + team.middle.length + 1
+}
 
 export async function callRunExecution(inputData: Hex) {
     try {

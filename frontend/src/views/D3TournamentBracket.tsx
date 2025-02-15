@@ -4,9 +4,10 @@ import { tournamentService } from '../services/TournamentService';
 
 interface TournamentProps {
   roundNumber: number
+  teamFocus?: string
 }
 
-const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
+const D3TournamentBracket = ({ roundNumber, teamFocus }: TournamentProps) => {
   const svgRef = useRef(null);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
     const verticalSpacing = 100;
     const margin = { top: 50, right: 100, bottom: 50, left: 80 };
     let rightSemifinalX = 0;
+    let leftSemifinalX = 0;
     const rightAdjustmentX = 200;
     const scaleFactor = 0.7;
 
@@ -63,13 +65,15 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
       const scoreAnchor = isRight ? "start" : "end";
 
       // Team 1
-      g.append("text")
+      const t1 = g.append("text")
         .attr("x", textX)
         .attr("y", matchHeight / 4 + 8)
         .attr("text-anchor", anchor)
         .attr("font-size", "14px")
         .text(match.teamA);
-
+      if (match.teamA === teamFocus) {
+        t1.attr("font-weight", "bold");
+      }
       g.append("text")
         .attr("x", scoreX)
         .attr("y", matchHeight / 4 + 8)
@@ -78,12 +82,15 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
         .text(match.goalsA);
 
       // Team 2
-      g.append("text")
+      const t2 = g.append("text")
         .attr("x", textX)
         .attr("y", matchHeight * 3 / 4 + 8)
         .attr("text-anchor", anchor)
         .attr("font-size", "14px")
         .text(match.teamB);
+      if (match.teamB === teamFocus) {
+        t2.attr("font-weight", "bold");
+      }
 
       g.append("text")
         .attr("x", scoreX)
@@ -96,17 +103,19 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
     }
 
     // Function to draw connector lines
-    function createConnector(group: any, startX: any, startY: any, endX: any, endY: any) {
+    function createConnector(group: any, startX: any, startY: any, endX: any, endY: any, bold?: any) {
       const midX = (startX + endX) / 2;
 
-      group.append("path")
+      const p = group.append("path")
         .attr("d", `M ${startX} ${startY} 
                     H ${midX} 
                     V ${endY} 
                     H ${endX}`)
         .attr("fill", "none")
-        .attr("stroke-width", 6)
         .attr("stroke", "#ddd");
+      if (bold) {
+        p.attr("stroke-width", 6);
+      }
     }
 
     // Draw left bracket
@@ -127,14 +136,16 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
         matchWidth,
         i * verticalSpacing * 2 + matchHeight / 2,
         x,
-        y + matchHeight / 2
+        y + matchHeight / 2,
+        match.teamA === teamFocus,
       );
       createConnector(
         svg,
         matchWidth,
         (i * 2 + 1) * verticalSpacing + matchHeight / 2,
         x,
-        y + matchHeight / 2
+        y + matchHeight / 2,
+        match.teamB === teamFocus,
       );
     });
 
@@ -157,14 +168,16 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
         x + matchWidth,
         y + matchHeight / 2,
         rightStart,
-        i * verticalSpacing * 2 + matchHeight / 2
+        i * verticalSpacing * 2 + matchHeight / 2,
+        match.teamA === teamFocus,
       );
       createConnector(
         svg,
         x + matchWidth,
         y + matchHeight / 2,
         rightStart,
-        (i * 2 + 1) * verticalSpacing + matchHeight / 2
+        (i * 2 + 1) * verticalSpacing + matchHeight / 2,
+        match.teamB === teamFocus,
       );
     });
 
@@ -173,21 +186,23 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
       const x = roundSpacing * 2;
       const y = verticalSpacing * 1.5;
       createMatch(svg, match, x, y);
-
+      leftSemifinalX = x + matchWidth;
       // Draw connectors from quarter-finals
       createConnector(
         svg,
         roundSpacing + matchWidth,
         verticalSpacing / 2 + matchHeight / 2,
         x,
-        y + matchHeight / 2
+        y + matchHeight / 2,
+        match.teamA === teamFocus,
       );
       createConnector(
         svg,
         roundSpacing + matchWidth,
         verticalSpacing * 2.5 + matchHeight / 2,
         x,
-        y + matchHeight / 2
+        y + matchHeight / 2,
+        match.teamB === teamFocus,
       );
     });
 
@@ -202,14 +217,16 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
         x + matchWidth,
         y + matchHeight / 2,
         rightStart - roundSpacing,
-        verticalSpacing / 2 + matchHeight / 2
+        verticalSpacing / 2 + matchHeight / 2,
+        match.teamA === teamFocus,
       );
       createConnector(
         svg,
         x + matchWidth,
         y + matchHeight / 2,
         rightStart - roundSpacing,
-        verticalSpacing * 2.5 + matchHeight / 2
+        verticalSpacing * 2.5 + matchHeight / 2,
+        match.teamB === teamFocus,
       );
       rightSemifinalX = x
     });
@@ -222,21 +239,26 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
     createMatch(svg, matches.final, finalX, finalY);
 
     // Draw connectors to final
-    function createFinalConnector(group: any, startX: any, startY: any, endX: any, endY: any) {
+    function createFinalConnector(group: any, startX: any, startY: any, endX: any, endY: any, bold: boolean) {
       const dAttr = `M ${startX} ${startY} 
                     V ${endY} 
                     H ${endX}`
-      group.append("path")
+      const p = group.append("path")
         .attr("d", dAttr)
         .attr("fill", "none")
         .attr("stroke", "#ddd");
+      if (bold) {
+        p.attr("stroke-width", 6);
+      }
     }
     createFinalConnector(
       svg,
       finalX + matchWidth / 2,
       finalY + matchHeight,
-      finalX - matchWidth / 2,
+      // finalX - matchWidth,
+      leftSemifinalX,
       finalY + upFinalY + matchHeight / 2,
+      matches.final.teamB === teamFocus,
     );
     createFinalConnector(
       svg,
@@ -245,6 +267,7 @@ const D3TournamentBracket = ({ roundNumber }: TournamentProps) => {
       // finalX + matchWidth,
       rightSemifinalX,
       finalY + upFinalY + matchHeight / 2,
+      matches.final.teamA === teamFocus,
     );
   }, [roundNumber]);
 

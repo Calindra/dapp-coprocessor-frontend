@@ -1,10 +1,3 @@
-export interface Match {
-    teamA: string;
-    goalsA: string | number;
-    teamB: string;
-    goalsB: string | number;
-}
-
 export interface TournamentBracket {
     roundOf16Left: Match[];
     quarterFinalsLeft: Match[];
@@ -13,4 +6,13 @@ export interface TournamentBracket {
     quarterFinalsRight: Match[];
     semiFinalsRight: Match[];
     final: Match;
+    round: number;
 }
+
+export interface Match {
+    teamA: string;
+    goalsA: string | number;
+    teamB: string;
+    goalsB: string | number;
+}
+

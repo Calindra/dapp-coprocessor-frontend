@@ -5,7 +5,7 @@ import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
 import { Player } from '../model/Player';
 import { Button } from '../components/ui/button';
 import { Team } from '../model/Team';
-import { callRunExecution } from '../services/MatchService';
+import { callRunExecution, countPlayers } from '../services/MatchService';
 import { Hex, toHex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
 import { getWalletClient } from '../services/WalletService';
@@ -18,6 +18,7 @@ const SoccerTeamManager = () => {
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
   const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
   const [teamB, setTeamB] = useState('')
+  const [showTournament, setShowTournament] = useState(true)
 
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
@@ -42,7 +43,9 @@ const SoccerTeamManager = () => {
           loadPlayers(accounts[0])
         }
       }).catch(e => console.error(e))
-      const currentAdversary = tournamentService.getCurrentAdversary('England', roundNumber)
+      const matches = tournamentService.getMatches()
+      setRoundNumber(matches.round)
+      const currentAdversary = tournamentService.getCurrentAdversary('England')
       if (currentAdversary) {
         setTeamB(currentAdversary)
       }
@@ -98,7 +101,14 @@ const SoccerTeamManager = () => {
   };
 
   const runMatch = async () => {
-    const currentAdversary = tournamentService.getCurrentAdversary('England', roundNumber)
+    const total = countPlayers(team.teamA)
+    if (total < 11) {
+      alert(`Buy a pack of players to ensure you have at least 11.`)
+      setShowTournament(false)
+      return
+    }
+    setShowTournament(true)
+    const currentAdversary = tournamentService.getCurrentAdversary('England')
     if (currentAdversary) {
       setTeamB(currentAdversary)
       setGoalsA('?')
@@ -134,15 +144,16 @@ const SoccerTeamManager = () => {
     }
     setGoalsA(`${gameResult.goalsA}`)
     setGoalsB(`${gameResult.goalsB}`)
-    const currentTeamB = tournamentService.getCurrentAdversary('England', roundNumber)
+    const currentTeamB = tournamentService.getCurrentAdversary('England')
     if (!currentTeamB) {
       console.error(`Logic error!!!`)
       return
     }
     console.log(`Set result by onchain game`, 'England', currentTeamB)
-    tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`, roundNumber)
-    tournamentService.fillMatchesResult(roundNumber)
-    setRoundNumber(roundNumber + 1)
+    tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`)
+    tournamentService.fillMatchesResult()
+    const newRound = tournamentService.incRound();
+    setRoundNumber(newRound)
   }
 
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
@@ -242,8 +253,11 @@ const SoccerTeamManager = () => {
     }
   }
 
-  const createTeam = async () => {
+  const buyPack = async () => {
     await mintNFTs()
+    setTimeout(() => {
+      loadTeam()
+    }, 1000)
   }
 
   return (
@@ -256,12 +270,14 @@ const SoccerTeamManager = () => {
           </CardTitle>
           <div className="flex items-center space-x-4">
             <Button onClick={runMatch}>Run Match</Button>
-            <Button onClick={createTeam}>Buy pack(8)</Button>
+            <Button onClick={buyPack}>Buy pack(8)</Button>
             <Button onClick={loadTeam}>Load Team</Button>
           </div>
         </CardHeader>
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
-        <D3TournamentBracket roundNumber={roundNumber} />
+        {showTournament && (
+          <D3TournamentBracket roundNumber={roundNumber} teamFocus={'England'} />
+        )}
         <CardContent>
           {/* Goalkeeper */}
           <div className="mb-6">
