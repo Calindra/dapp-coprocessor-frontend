@@ -44,10 +44,16 @@ class TournamentService {
         return matches
     }
 
-    setLoadingReqId(reqId: string) {
+    setLoadingReqId(reqId: string, teamA: string, teamB: string) {
         const matches = this.getMatches();
         matches.loadingReqId = reqId;
         matches.matchStartedAt = Date.now();
+        matches.currentMatch = {
+            teamA,
+            teamB,
+            goalsA: '0',
+            goalsB: '0',
+        }
         localStorage.setItem('matches', JSON.stringify(matches));
     }
 
@@ -113,6 +119,7 @@ class TournamentService {
 
     fillMatchesResult() {
         const matches = this.getMatches();
+        matches.loadingReqId = ''
         const roundNumber = matches.round;
         // Define all rounds in an array for indexed access
         const rounds: (Match[] | Match)[] = [

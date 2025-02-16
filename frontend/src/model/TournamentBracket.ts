@@ -9,6 +9,9 @@ export interface TournamentBracket {
     round: number;
     loadingReqId?: string;
     matchStartedAt?: number;
+
+    // change only when submit to the blockchain
+    currentMatch?: Match;
 }
 
 export interface Match {

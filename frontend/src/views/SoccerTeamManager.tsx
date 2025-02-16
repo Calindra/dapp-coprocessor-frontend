@@ -14,21 +14,54 @@ import D3TournamentBracket from './D3TournamentBracket';
 import { tournamentService } from '../services/TournamentService';
 import fireworks from '../services/Fireworks';
 import { RunMatchRequest } from '../model/RunMatchRequest';
-import SoccerCommentary from '../components/SoccerCommentary';
+import SoccerCommentary, { CommentaryType } from '../components/SoccerCommentary';
+import { GameResultI } from '../model/GameResult';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
   const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
   const [teamB, setTeamB] = useState('')
-  const [showTournament, setShowTournament] = useState(false)
+  const [showTournament, setShowTournament] = useState(true)
 
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
   const [roundNumber, setRoundNumber] = useState(0)
   const [reqId, setReqId] = useState('')
   const [matchStartedAt, setMatchStartedAt] = useState(0);
+  const [commentaryType, setCommentaryType] = useState<CommentaryType>('playing')
 
+  const showGameResult = (gameResult: GameResultI | undefined) => {
+    if (!gameResult) {
+      return
+    }
+    setGoalsA(`${gameResult.goalsA}`)
+    setGoalsB(`${gameResult.goalsB}`)
+    const matches = tournamentService.getMatches()
+    const currentTeamB = matches.currentMatch?.teamB
+    if (!currentTeamB) {
+      console.warn(`Sync error`)
+      return
+    }
+    console.log(`Set result by onchain game`, 'England', currentTeamB)
+    tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`)
+    tournamentService.fillMatchesResult()
+    tournamentService.setLoadingReqId('', '', '')
+    setReqId('')
+    setMatchStartedAt(0)
+    const newRound = tournamentService.incRound();
+    setRoundNumber(newRound)
+    if (newRound > 3 && (gameResult.goalsA ?? 0) >= (gameResult.goalsB ?? 0)) {
+      fireworks()
+      setTimeout(() => fireworks(), 400)
+      setTimeout(() => fireworks(), 500)
+      setTimeout(() => fireworks(), 800)
+    } else {
+      if (gameResult.goalsA == gameResult.goalsB) {
+        setCommentaryType('advanceOnPenalties')
+      }
+    }
+  }
   const setSelectedPlayer = (player: Player) => {
     if (selectedPlayerA === null) {
       return setSelectedPlayerA(player)
@@ -51,7 +84,12 @@ const SoccerTeamManager = () => {
       const matches = tournamentService.getMatches()
       setRoundNumber(matches.round)
       if (matches.loadingReqId) {
-        watchEvent(matches.loadingReqId)
+        setTeamB(matches.currentMatch?.teamB || '')
+        setGoalsA('0')
+        setGoalsB('0')
+        watchEvent(matches.loadingReqId).then(gameResult => {
+          showGameResult(gameResult)
+        })
         setReqId(matches.loadingReqId)
         setShowTournament(true)
         setMatchStartedAt(matches.matchStartedAt || 0)
@@ -124,8 +162,8 @@ const SoccerTeamManager = () => {
     const currentAdversary = tournamentService.getCurrentAdversary('England')
     if (currentAdversary) {
       setTeamB(currentAdversary)
-      setGoalsA('?')
-      setGoalsB('?')
+      setGoalsA('0')
+      setGoalsB('0')
     } else {
       if (confirm('Restart?')) {
         tournamentService.initialize()
@@ -147,34 +185,11 @@ const SoccerTeamManager = () => {
       teamA: team.teamA!,
       reqId: crypto.randomUUID(),
     }
-    tournamentService.setLoadingReqId(payload.reqId)
+    tournamentService.setLoadingReqId(payload.reqId, 'England', currentAdversary)
     setMatchStartedAt(Date.now())
     setReqId(payload.reqId)
     const gameResult = await callRunExecution(payload)
-    tournamentService.setLoadingReqId('')
-    setReqId('')
-    setMatchStartedAt(0)
-    if (!gameResult) {
-      return
-    }
-    setGoalsA(`${gameResult.goalsA}`)
-    setGoalsB(`${gameResult.goalsB}`)
-    const currentTeamB = tournamentService.getCurrentAdversary('England')
-    if (!currentTeamB) {
-      console.error(`Logic error!!!`)
-      return
-    }
-    console.log(`Set result by onchain game`, 'England', currentTeamB)
-    tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`)
-    tournamentService.fillMatchesResult()
-    const newRound = tournamentService.incRound();
-    setRoundNumber(newRound)
-    if (newRound > 3 && (gameResult.goalsA ?? 0) >= (gameResult.goalsB ?? 0)) {
-      fireworks()
-      setTimeout(() => fireworks(), 400)
-      setTimeout(() => fireworks(), 500)
-      setTimeout(() => fireworks(), 800)
-    }
+    showGameResult(gameResult)
   }
 
   const PlayerCard = ({ player, position }: { player: Player, position: string }) => (
@@ -296,7 +311,7 @@ const SoccerTeamManager = () => {
           </div>
         </CardHeader>
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
-        {reqId !== '' && (<SoccerCommentary start={matchStartedAt} />)}
+        {reqId !== '' && (<SoccerCommentary start={matchStartedAt} commentaryType={commentaryType} />)}
         {showTournament && (
           <D3TournamentBracket roundNumber={roundNumber} teamFocus={'England'} />
         )}
