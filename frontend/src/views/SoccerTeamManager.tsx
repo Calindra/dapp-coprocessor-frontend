@@ -47,7 +47,6 @@ const SoccerTeamManager = () => {
     tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`)
     tournamentService.fillMatchesResult()
     tournamentService.setLoadingReqId('', '', '')
-    setReqId('')
     setMatchStartedAt(0)
     const newRound = tournamentService.incRound();
     setRoundNumber(newRound)
@@ -56,11 +55,19 @@ const SoccerTeamManager = () => {
       setTimeout(() => fireworks(), 400)
       setTimeout(() => fireworks(), 500)
       setTimeout(() => fireworks(), 800)
+      setCommentaryType('weAreTheChampions')
     } else {
       if (gameResult.goalsA == gameResult.goalsB) {
         setCommentaryType('advanceOnPenalties')
+      } else if ((gameResult.goalsA ?? 0) > (gameResult.goalsB ?? 0)) {
+        setCommentaryType('winning')
+        setTimeout(() => setCommentaryType('victoryToNextRound'), 20000)
       }
     }
+    setTimeout(() => {
+      setCommentaryType('playing')
+      setReqId('')
+    }, 30000)
   }
   const setSelectedPlayer = (player: Player) => {
     if (selectedPlayerA === null) {
@@ -310,6 +317,9 @@ const SoccerTeamManager = () => {
             <Button onClick={loadTeam}>Load Team</Button>
           </div>
         </CardHeader>
+        {/* <Button onClick={() => setCommentaryType('winning')}>Winning</Button>
+        <Button onClick={() => setCommentaryType('advanceOnPenalties')}>Penal</Button>
+        <Button onClick={() => setCommentaryType('weAreTheChampions')}>Champion</Button> */}
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
         {reqId !== '' && (<SoccerCommentary start={matchStartedAt} commentaryType={commentaryType} />)}
         {showTournament && (

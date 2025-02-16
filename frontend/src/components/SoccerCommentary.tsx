@@ -140,9 +140,36 @@ const advanceOnPenalties = [  // Penalty Shootout Victory Commentary
     "From heartbreak to joy—they win the shootout!"
 ];
 
+const weAreTheChampions = [  // Tournament Victory Commentary
+    "CHAMPIONS! They have conquered the tournament!",
+    "They’ve done it! They are the kings of the competition!",
+    "Glory is theirs! They lift the trophy high!",
+    "A historic night—THEY ARE THE CHAMPIONS!",
+    "The final whistle blows, and they are crowned the best!",
+    "Champions of the tournament! What a journey, what a team!",
+    "The dream has become reality—they have won it all!",
+    "The captain lifts the trophy—their legacy is sealed!",
+    "This is their moment! They stand on top of the football world!",
+    "The stadium erupts—they are the undisputed champions!",
+    "They’ve fought, they’ve sacrificed, and now they celebrate!",
+    "Years from now, this moment will still be remembered!",
+    "Pure jubilation! They have reached the pinnacle of success!",
+    "An unforgettable run ends in ultimate glory!",
+    "They came, they battled, and they conquered it all!",
+    "From the first match to the final whistle—CHAMPIONS!",
+    "No one can take this away from them—they have earned it!",
+    "The coach, the players, the fans—this victory belongs to all of them!",
+    "The road was long, the battles were tough, but they stand victorious!",
+    "A tournament to remember, a victory for the ages!",
+    "They have written their names in history as champions!",
+    "Confetti rains down, the celebrations begin—what a triumph!",
+    "A fairytale ending—they lift the trophy with pride!",
+    "From contenders to champions—their journey is complete!",
+    "They are the best, they are the winners, they are the CHAMPIONS!"
+  ];
+  
 
-
-export type CommentaryType = 'winning' | 'playing' | 'victoryToNextRound' | 'advanceOnPenalties'
+export type CommentaryType = 'weAreTheChampions' | 'winning' | 'playing' | 'victoryToNextRound' | 'advanceOnPenalties'
 
 type SoccerCommentaryProps = {
     start: number
@@ -160,10 +187,20 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
         }
         const interval = setInterval(() => {
             const timePassed = (Date.now() - start) / 1000;
-            console.log(`timePassed = ${timePassed};`)
-            if (commentaryType === 'victoryToNextRound' && timePassed > 150 && timePassed < 300) {
+            console.log(`timePassed = ${timePassed}; commentaryType = ${commentaryType}`)
+            if (commentaryType === 'victoryToNextRound') {
                 const randomIndex = Math.floor(Math.random() * victoryToNextRound.length);
                 setPhrase(victoryToNextRound[randomIndex]);
+                return
+            }
+            if (commentaryType === 'weAreTheChampions') {
+                const randomIndex = Math.floor(Math.random() * weAreTheChampions.length);
+                setPhrase(weAreTheChampions[randomIndex]);
+                return
+            }
+            if (commentaryType === 'winning') {
+                const randomIndex = Math.floor(Math.random() * winning.length);
+                setPhrase(winning[randomIndex]);
                 return
             }
             if (timePassed < 30) {
@@ -172,18 +209,15 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
             } else if (timePassed < 500) {
                 const randomIndex = Math.floor(Math.random() * matchPhrases.length);
                 setPhrase(matchPhrases[randomIndex]);
-            } else if ((commentaryType === 'winning' || commentaryType === 'victoryToNextRound') && timePassed < 500) {
-                const randomIndex = Math.floor(Math.random() * winning.length);
-                setPhrase(winning[randomIndex]);
             } else {
                 setPhrase('');
             }
         }, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [commentaryType]);
 
     return (
-        <div className="p-2 text-xl font-bold text-center bg-white">
+        <div style={{border: '1px dashed #FF0000'}} className="p-2 text-xl font-bold text-center bg-white">
             {phrase}
         </div>
     );
