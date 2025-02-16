@@ -44,6 +44,13 @@ class TournamentService {
         return matches
     }
 
+    setLoadingReqId(reqId: string) {
+        const matches = this.getMatches();
+        matches.loadingReqId = reqId;
+        matches.matchStartedAt = Date.now();
+        localStorage.setItem('matches', JSON.stringify(matches));
+    }
+
     setResult(teamA: string, teamB: string, goalsA: string, goalsB: string, skipSave?: boolean) {
         const matches = this.getMatches();
         const roundNumber = matches.round;
@@ -132,7 +139,7 @@ class TournamentService {
 
     incRound() {
         const matches = this.getMatches();
-        matches.round ++;
+        matches.round++;
         localStorage.setItem('matches', JSON.stringify(matches));
         return matches.round;
     }

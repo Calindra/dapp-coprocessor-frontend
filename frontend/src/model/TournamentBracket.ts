@@ -7,6 +7,8 @@ export interface TournamentBracket {
     semiFinalsRight: Match[];
     final: Match;
     round: number;
+    loadingReqId?: string;
+    matchStartedAt?: number;
 }
 
 export interface Match {

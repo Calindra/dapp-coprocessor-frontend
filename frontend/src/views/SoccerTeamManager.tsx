@@ -5,8 +5,8 @@ import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
 import { Player } from '../model/Player';
 import { Button } from '../components/ui/button';
 import { Team } from '../model/Team';
-import { callRunExecution, countPlayers } from '../services/MatchService';
-import { Hex, toHex } from 'viem';
+import { callRunExecution, countPlayers, watchEvent } from '../services/MatchService';
+import { Hex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
 import { getWalletClient } from '../services/WalletService';
 import GameResult from '../components/GameResult';
@@ -14,6 +14,7 @@ import D3TournamentBracket from './D3TournamentBracket';
 import { tournamentService } from '../services/TournamentService';
 import fireworks from '../services/Fireworks';
 import { RunMatchRequest } from '../model/RunMatchRequest';
+import SoccerCommentary from '../components/SoccerCommentary';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
@@ -25,6 +26,8 @@ const SoccerTeamManager = () => {
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
   const [roundNumber, setRoundNumber] = useState(0)
+  const [reqId, setReqId] = useState('')
+  const [matchStartedAt, setMatchStartedAt] = useState(0);
 
   const setSelectedPlayer = (player: Player) => {
     if (selectedPlayerA === null) {
@@ -47,6 +50,14 @@ const SoccerTeamManager = () => {
       }).catch(e => console.error(e))
       const matches = tournamentService.getMatches()
       setRoundNumber(matches.round)
+      if (matches.loadingReqId) {
+        watchEvent(matches.loadingReqId)
+        setReqId(matches.loadingReqId)
+        setShowTournament(true)
+        setMatchStartedAt(matches.matchStartedAt || 0)
+      } else {
+        setReqId('')
+      }
       const currentAdversary = tournamentService.getCurrentAdversary('England')
       if (currentAdversary) {
         setTeamB(currentAdversary)
@@ -136,7 +147,13 @@ const SoccerTeamManager = () => {
       teamA: team.teamA!,
       reqId: crypto.randomUUID(),
     }
+    tournamentService.setLoadingReqId(payload.reqId)
+    setMatchStartedAt(Date.now())
+    setReqId(payload.reqId)
     const gameResult = await callRunExecution(payload)
+    tournamentService.setLoadingReqId('')
+    setReqId('')
+    setMatchStartedAt(0)
     if (!gameResult) {
       return
     }
@@ -279,6 +296,7 @@ const SoccerTeamManager = () => {
           </div>
         </CardHeader>
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
+        {reqId !== '' && (<SoccerCommentary start={matchStartedAt} />)}
         {showTournament && (
           <D3TournamentBracket roundNumber={roundNumber} teamFocus={'England'} />
         )}
