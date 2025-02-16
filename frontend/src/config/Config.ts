@@ -37,7 +37,8 @@ const config = {
     useCoprocessor,
     chain: useCoprocessor ? holesky : hardhat,
     // chain: hardhat,
-    rpcUrl: rpcUrl,
+    // rpcUrl: rpcUrl,
+    rpcUrl: undefined,
 }
 
 export default config
