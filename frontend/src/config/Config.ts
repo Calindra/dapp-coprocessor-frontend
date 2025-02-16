@@ -6,7 +6,7 @@ const useCoprocessor = true
 // Holesky
 const nftPlayersContractAddressProd: Hex = '0x0Ab8cCcE9E29E5F1197b4f39F12fEBD3dB66EA74';
 const coprocessorAdapter: Hex = '0xb702fF362B0E26a0Dbe2C5dc3fd3904808296d87';
-const rpcUrl = 'https://1rpc.io/holesky';
+// const rpcUrl = 'https://1rpc.io/holesky';
 
 // Codespaces
 // const nftPlayersContractAddressProd: Hex = '0xB0D4afd8879eD9F52b28595d31B441D079B2Ca07';

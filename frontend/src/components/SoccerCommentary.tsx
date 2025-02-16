@@ -166,10 +166,33 @@ const weAreTheChampions = [  // Tournament Victory Commentary
     "A fairytale ending—they lift the trophy with pride!",
     "From contenders to champions—their journey is complete!",
     "They are the best, they are the winners, they are the CHAMPIONS!"
-  ];
-  
+];
 
-export type CommentaryType = 'weAreTheChampions' | 'winning' | 'playing' | 'victoryToNextRound' | 'advanceOnPenalties'
+const losing = [  // Losing Team Commentary
+    "They are running out of time—desperation is setting in.",
+    "The clock is ticking, and they need a miracle now!",
+    "They’ve fought hard, but they’re struggling to find a way back.",
+    "The opposition has been dominant, and the score reflects it.",
+    "They look exhausted, but they’re still pushing for a comeback!",
+    "A tough night for them, as they struggle to break through.",
+    "They’ve had their chances, but nothing is going their way.",
+    "Frustration is showing—this is not the result they wanted.",
+    "They need something special now to turn this around!",
+    "The defense has been under pressure all game long.",
+    "It’s been a difficult match for them, but they’re still fighting.",
+    "Their hopes are fading, but they’re not giving up yet!",
+    "They’ve been second best today, and they know it.",
+    "They’re throwing everything forward, but time is against them.",
+    "Heads are dropping—it’s been a tough battle.",
+    "They need a spark, but they just can't find it.",
+    "The opposition’s defense has been rock solid today.",
+    "It’s been a disappointing performance, but they’ll learn from this.",
+    "A heartbreaking result, but they gave everything they had.",
+    "They'll need to regroup and come back stronger next time."
+  ];
+
+
+export type CommentaryType = 'weAreTheChampions' | 'winning' | 'losing' | 'playing' | 'victoryToNextRound' | 'advanceOnPenalties'
 
 type SoccerCommentaryProps = {
     start: number
@@ -177,7 +200,7 @@ type SoccerCommentaryProps = {
 }
 
 const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
-    const [phrase, setPhrase] = useState<string>('');
+    const [phrase, setPhrase] = useState<string>('...');
 
     useEffect(() => {
         if (commentaryType === 'advanceOnPenalties') {
@@ -203,6 +226,11 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
                 setPhrase(winning[randomIndex]);
                 return
             }
+            if (commentaryType === 'losing') {
+                const randomIndex = Math.floor(Math.random() * losing.length);
+                setPhrase(losing[randomIndex]);
+                return
+            }
             if (timePassed < 30) {
                 const randomIndex = Math.floor(Math.random() * preKickoffPhrases.length);
                 setPhrase(preKickoffPhrases[randomIndex]);
@@ -217,7 +245,21 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
     }, [commentaryType]);
 
     return (
-        <div style={{border: '1px dashed #FF0000'}} className="p-2 text-xl font-bold text-center bg-white">
+        <div
+            // style={{border: '1px dashed #FF0000'}} 
+            className="p-2 text-xl font-bold text-center bg-white">
+            {commentaryType === 'advanceOnPenalties' && (
+                <div
+                    className="p-2 text-sm font-bold text-center bg-white">
+                    Decision by Penalties
+                </div>
+            )}
+            {commentaryType === 'weAreTheChampions' && (
+                <div
+                    className="p-2 text-sm font-bold text-center bg-white">
+                    🏆 We are the champions! 🏆
+                </div>
+            )}
             {phrase}
         </div>
     );

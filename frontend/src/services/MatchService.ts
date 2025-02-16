@@ -1,4 +1,4 @@
-import { createPublicClient, http, parseAbi, Hex, parseAbiItem, decodeAbiParameters, toHex, keccak256 } from 'viem';
+import { createPublicClient, http, parseAbi, parseAbiItem, decodeAbiParameters, toHex } from 'viem';
 import { getWalletClient } from './WalletService';
 import config from '../config/Config';
 import { GameResultI } from '../model/GameResult';
@@ -23,11 +23,15 @@ export function countPlayers(team?: Team | null) {
     return team.attack.length + team.defense.length + team.middle.length + 1
 }
 
-export async function callRunExecution(req: RunMatchRequest) {
+export async function runExecution(req: RunMatchRequest) {
     try {
         const bigIntSerializer = (_key: any, value: any) => {
             return typeof value === "bigint" ? value.toString() : value;
         };
+        req.teamA = { ...req.teamA }
+        if (req.teamA.bench.length > 3) {
+            req.teamA.bench = req.teamA.bench.slice(0, 3)
+        }
         const str = JSON.stringify(req, bigIntSerializer)
         const inputData = toHex(str)
         const walletClient = getWalletClient()

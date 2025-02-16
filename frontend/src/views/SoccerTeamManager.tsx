@@ -5,7 +5,7 @@ import { Users, User, Star, ArrowLeftRight } from 'lucide-react';
 import { Player } from '../model/Player';
 import { Button } from '../components/ui/button';
 import { Team } from '../model/Team';
-import { callRunExecution, countPlayers, watchEvent } from '../services/MatchService';
+import { runExecution, countPlayers, watchEvent } from '../services/MatchService';
 import { Hex } from 'viem';
 import { getNFTs, mintNFTs } from '../services/NFTPlayersService';
 import { getWalletClient } from '../services/WalletService';
@@ -20,7 +20,7 @@ import { GameResultI } from '../model/GameResult';
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
   const [selectedPlayerB, setSelectedPlayerB] = useState<Player | null>(null);
-  const [team, setTeam] = useState<{ teamA: Team | null }>({ teamA: null });
+  const [team, setTeam] = React.useState<{ teamA: Team | null }>({ teamA: null });
   const [teamB, setTeamB] = useState('')
   const [showTournament, setShowTournament] = useState(true)
 
@@ -49,8 +49,14 @@ const SoccerTeamManager = () => {
     tournamentService.setLoadingReqId('', '', '')
     setMatchStartedAt(0)
     const newRound = tournamentService.incRound();
-    setRoundNumber(newRound)
+    let fireworksInterval = null
     if (newRound > 3 && (gameResult.goalsA ?? 0) >= (gameResult.goalsB ?? 0)) {
+      fireworksInterval = setInterval(() => {
+        fireworks()
+        setTimeout(() => fireworks(), 400)
+        setTimeout(() => fireworks(), 500)
+        setTimeout(() => fireworks(), 800)  
+      }, 1500)
       fireworks()
       setTimeout(() => fireworks(), 400)
       setTimeout(() => fireworks(), 500)
@@ -62,11 +68,17 @@ const SoccerTeamManager = () => {
       } else if ((gameResult.goalsA ?? 0) > (gameResult.goalsB ?? 0)) {
         setCommentaryType('winning')
         setTimeout(() => setCommentaryType('victoryToNextRound'), 20000)
+      } else if ((gameResult.goalsA ?? 0) < (gameResult.goalsB ?? 0)) {
+        setCommentaryType('losing')
       }
     }
     setTimeout(() => {
       setCommentaryType('playing')
       setReqId('')
+      setRoundNumber(newRound)
+      if (fireworksInterval) {
+        clearInterval(fireworksInterval)
+      }
     }, 30000)
   }
   const setSelectedPlayer = (player: Player) => {
@@ -162,7 +174,6 @@ const SoccerTeamManager = () => {
     const total = countPlayers(team.teamA)
     if (total < 11) {
       alert(`Buy a pack of players to ensure you have at least 11.`)
-      setShowTournament(false)
       return
     }
     setShowTournament(true)
@@ -195,7 +206,7 @@ const SoccerTeamManager = () => {
     tournamentService.setLoadingReqId(payload.reqId, 'England', currentAdversary)
     setMatchStartedAt(Date.now())
     setReqId(payload.reqId)
-    const gameResult = await callRunExecution(payload)
+    const gameResult = await runExecution(payload)
     showGameResult(gameResult)
   }
 
@@ -317,9 +328,12 @@ const SoccerTeamManager = () => {
             <Button onClick={loadTeam}>Load Team</Button>
           </div>
         </CardHeader>
-        {/* <Button onClick={() => setCommentaryType('winning')}>Winning</Button>
+        
+        <Button onClick={() => setReqId('x')}>Fake req</Button>
+        <Button onClick={() => setCommentaryType('winning')}>Winning</Button>
         <Button onClick={() => setCommentaryType('advanceOnPenalties')}>Penal</Button>
-        <Button onClick={() => setCommentaryType('weAreTheChampions')}>Champion</Button> */}
+        <Button onClick={() => setCommentaryType('weAreTheChampions')}>Champion</Button>
+        <Button onClick={() => setCommentaryType('losing')}>Losing</Button>
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
         {reqId !== '' && (<SoccerCommentary start={matchStartedAt} commentaryType={commentaryType} />)}
         {showTournament && (

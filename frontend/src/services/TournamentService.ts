@@ -57,7 +57,7 @@ class TournamentService {
         localStorage.setItem('matches', JSON.stringify(matches));
     }
 
-    setResult(teamA: string, teamB: string, goalsA: string, goalsB: string, skipSave?: boolean) {
+    setResult(teamA: string, teamB: string, goalsA: string, goalsB: string) {
         const matches = this.getMatches();
         const roundNumber = matches.round;
         // Define all rounds in an array for indexed access
@@ -138,7 +138,7 @@ class TournamentService {
         for (const match of round) {
             if (match.goalsA === nullGoals && match.goalsB === nullGoals) {
                 console.log(`setResult`, match.teamA, match.teamB, matches.round, roundNumber)
-                this.setResult(match.teamA, match.teamB, `${Math.floor(Math.random() * 5)}`, `${Math.floor(Math.random() * 5)}`, true)
+                this.setResult(match.teamA, match.teamB, `${Math.floor(Math.random() * 5)}`, `${Math.floor(Math.random() * 5)}`)
             }
         }
         localStorage.setItem('matches', JSON.stringify(matches));

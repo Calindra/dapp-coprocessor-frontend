@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import * as d3 from 'd3';
 import { tournamentService } from '../services/TournamentService';
 
@@ -8,7 +8,7 @@ interface TournamentProps {
 }
 
 const D3TournamentBracket = ({ roundNumber, teamFocus }: TournamentProps) => {
-  const svgRef = useRef(null);
+  const svgRef = React.useRef(null);
 
   useEffect(() => {
     const matches = tournamentService.getMatches(roundNumber)
@@ -43,12 +43,15 @@ const D3TournamentBracket = ({ roundNumber, teamFocus }: TournamentProps) => {
         .attr("transform", `translate(${x},${y})`);
 
       // Match container
-      g.append("rect")
+      const container = g.append("rect")
         .attr("width", matchWidth)
         .attr("height", matchHeight)
         .attr("rx", 4)
         .attr("fill", "white")
         .attr("stroke", "#ddd");
+      if (match.teamA === teamFocus || match.teamB === teamFocus) {
+        container.attr("stroke", "#000")
+      }
 
       // Divider line
       g.append("line")
