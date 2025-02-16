@@ -31,7 +31,7 @@ const SoccerTeamManager = () => {
   const [roundNumber, setRoundNumber] = useState(0)
   const [reqId, setReqId] = useState('')
   const [matchStartedAt, setMatchStartedAt] = useState(0);
-  const [commentaryType, setCommentaryType] = useState<CommentaryType>('playing')
+  const [commentaryType, setCommentaryType] = useState<CommentaryType>('idle')
 
   const showGameResult = (gameResult: GameResultI | undefined) => {
     if (!gameResult) {
@@ -49,7 +49,6 @@ const SoccerTeamManager = () => {
     tournamentService.setResult('England', currentTeamB, `${gameResult.goalsA}`, `${gameResult.goalsB}`)
     tournamentService.fillMatchesResult()
     tournamentService.setLoadingReqId('', '', '')
-    setMatchStartedAt(0)
     const newRound = tournamentService.incRound();
     let fireworksInterval: any = null
     if (newRound > 3 && (gameResult.goalsA ?? 0) >= (gameResult.goalsB ?? 0)) {
@@ -66,10 +65,10 @@ const SoccerTeamManager = () => {
         setTimeout(() => setCommentaryType('victoryToNextRound'), 20000)
       } else if ((gameResult.goalsA ?? 0) < (gameResult.goalsB ?? 0)) {
         setCommentaryType('losing')
+        setTimeout(() => setCommentaryType('lost'), 20000)
       }
     }
     setTimeout(() => {
-      setCommentaryType('playing')
       setReqId('')
       setRoundNumber(newRound)
       if (fireworksInterval) {
@@ -173,6 +172,7 @@ const SoccerTeamManager = () => {
       return
     }
     setShowTournament(true)
+    setCommentaryType('playing')
     const currentAdversary = tournamentService.getCurrentAdversary('England')
     if (currentAdversary) {
       setTeamB(currentAdversary)
@@ -185,6 +185,7 @@ const SoccerTeamManager = () => {
         setTeamB('')
         setGoalsA('')
         setGoalsB('')
+        setCommentaryType('idle')
         return
       } else {
         return
@@ -338,7 +339,7 @@ const SoccerTeamManager = () => {
         <Button onClick={() => setCommentaryType('weAreTheChampions')}>Champion</Button>
         <Button onClick={() => setCommentaryType('losing')}>Losing</Button> */}
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
-        {reqId !== '' && (<SoccerCommentary start={matchStartedAt} commentaryType={commentaryType} />)}
+        {(reqId !== '' || commentaryType !== 'idle') && (<SoccerCommentary start={matchStartedAt} commentaryType={commentaryType} />)}
         {showTournament && (
           <D3TournamentBracket roundNumber={roundNumber} teamFocus={'England'} />
         )}

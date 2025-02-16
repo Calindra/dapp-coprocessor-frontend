@@ -189,10 +189,34 @@ const losing = [  // Losing Team Commentary
     "It’s been a disappointing performance, but they’ll learn from this.",
     "A heartbreaking result, but they gave everything they had.",
     "They'll need to regroup and come back stronger next time."
-  ];
+];
+
+const lost = [  // Encouraging Loss Commentary
+    "A tough defeat, but they’ll come back stronger next time!",
+    "They gave it everything, but today wasn’t their day. The future is bright!",
+    "Heartbreak tonight, but lessons for tomorrow!",
+    "They fall short this time, but they’ll rise again!",
+    "Not the result they wanted, but the journey continues!",
+    "They fought with heart—next time, they’ll be ready!",
+    "A setback today, but a stepping stone for the future!",
+    "Defeat hurts, but champions are made through moments like this!",
+    "They’ll take this experience and turn it into motivation for the next challenge!",
+    "Heads up! This is just one chapter in their story!",
+    "They leave with disappointment, but also with pride!",
+    "Today’s loss fuels tomorrow’s victory!",
+    "They may have lost the match, but they’ve gained valuable experience!",
+    "They came close, and next time, they’ll be even better!",
+    "A tough lesson, but a great team learns from defeat!",
+    "Not the ending they wanted, but they’ll be back with fire!",
+    "They gave it their all—next time, they’ll go even further!",
+    "The road doesn’t end here—bigger victories await!",
+    "They walk away empty-handed today, but the future holds promise!",
+    "Defeat is just the first step toward a great comeback!"
+];
 
 
-export type CommentaryType = 'weAreTheChampions' | 'winning' | 'losing' | 'playing' | 'victoryToNextRound' | 'advanceOnPenalties'
+
+export type CommentaryType = 'idle' | 'weAreTheChampions' | 'winning' | 'losing' | 'lost' | 'playing' | 'victoryToNextRound' | 'advanceOnPenalties'
 
 type SoccerCommentaryProps = {
     start: number
@@ -208,14 +232,19 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
             setPhrase(advanceOnPenalties[randomIndex]);
             return
         }
+        if (commentaryType === 'lost') {
+            const randomIndex = Math.floor(Math.random() * lost.length);
+            setPhrase(lost[randomIndex]);
+            return
+        }
+        if (commentaryType === 'victoryToNextRound') {
+            const randomIndex = Math.floor(Math.random() * victoryToNextRound.length);
+            setPhrase(victoryToNextRound[randomIndex]);
+            return
+        }
         const interval = setInterval(() => {
             const timePassed = (Date.now() - start) / 1000;
             console.log(`timePassed = ${timePassed}; commentaryType = ${commentaryType}`)
-            if (commentaryType === 'victoryToNextRound') {
-                const randomIndex = Math.floor(Math.random() * victoryToNextRound.length);
-                setPhrase(victoryToNextRound[randomIndex]);
-                return
-            }
             if (commentaryType === 'weAreTheChampions') {
                 const randomIndex = Math.floor(Math.random() * weAreTheChampions.length);
                 setPhrase(weAreTheChampions[randomIndex]);
@@ -242,7 +271,7 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
             }
         }, 5000);
         return () => clearInterval(interval);
-    }, [commentaryType]);
+    }, [commentaryType, start]);
 
     return (
         <div
@@ -252,6 +281,18 @@ const SoccerCommentary = ({ start, commentaryType }: SoccerCommentaryProps) => {
                 <div
                     className="p-2 text-sm font-bold text-center bg-white">
                     Decision by Penalties
+                </div>
+            )}
+            {commentaryType === 'lost' && (
+                <div
+                    className="p-2 text-sm font-bold text-center bg-white">
+                    Final Whistle: The Journey Ends
+                </div>
+            )}
+            {commentaryType === 'victoryToNextRound' && (
+                <div
+                    className="p-2 text-sm font-bold text-center bg-white">
+                    One Step Closer to Glory!
                 </div>
             )}
             {commentaryType === 'weAreTheChampions' && (
