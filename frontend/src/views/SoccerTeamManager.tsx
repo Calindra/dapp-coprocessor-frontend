@@ -329,11 +329,11 @@ const SoccerTeamManager = () => {
           </div>
         </CardHeader>
         
-        <Button onClick={() => setReqId('x')}>Fake req</Button>
+        {/* <Button onClick={() => setReqId('x')}>Fake req</Button>
         <Button onClick={() => setCommentaryType('winning')}>Winning</Button>
         <Button onClick={() => setCommentaryType('advanceOnPenalties')}>Penal</Button>
         <Button onClick={() => setCommentaryType('weAreTheChampions')}>Champion</Button>
-        <Button onClick={() => setCommentaryType('losing')}>Losing</Button>
+        <Button onClick={() => setCommentaryType('losing')}>Losing</Button> */}
         <GameResult goalsA={goalsA} goalsB={goalsB} teamBName={teamB} />
         {reqId !== '' && (<SoccerCommentary start={matchStartedAt} commentaryType={commentaryType} />)}
         {showTournament && (
