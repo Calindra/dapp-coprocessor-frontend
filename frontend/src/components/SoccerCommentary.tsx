@@ -144,7 +144,7 @@ const weAreTheChampions = [  // Tournament Victory Commentary
     "CHAMPIONS! They have conquered the tournament!",
     "They’ve done it! They are the kings of the competition!",
     "Glory is theirs! They lift the trophy high!",
-    "A historic night—THEY ARE THE CHAMPIONS!",
+    "A historic night—WE ARE THE CHAMPIONS!",
     "The final whistle blows, and they are crowned the best!",
     "Champions of the tournament! What a journey, what a team!",
     "The dream has become reality—they have won it all!",

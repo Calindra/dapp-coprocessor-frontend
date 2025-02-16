@@ -12,10 +12,11 @@ import { getWalletClient } from '../services/WalletService';
 import GameResult from '../components/GameResult';
 import D3TournamentBracket from './D3TournamentBracket';
 import { tournamentService } from '../services/TournamentService';
-import fireworks from '../services/Fireworks';
+import { finalFireworks, fireworks } from '../services/Fireworks';
 import { RunMatchRequest } from '../model/RunMatchRequest';
 import SoccerCommentary, { CommentaryType } from '../components/SoccerCommentary';
 import { GameResultI } from '../model/GameResult';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const SoccerTeamManager = () => {
   const [selectedPlayerA, setSelectedPlayerA] = useState<Player | null>(null);
@@ -23,6 +24,7 @@ const SoccerTeamManager = () => {
   const [team, setTeam] = React.useState<{ teamA: Team | null }>({ teamA: null });
   const [teamB, setTeamB] = useState('')
   const [showTournament, setShowTournament] = useState(true)
+  const [loadingTeam, setLoadingTeam] = useState(false)
 
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
@@ -49,24 +51,18 @@ const SoccerTeamManager = () => {
     tournamentService.setLoadingReqId('', '', '')
     setMatchStartedAt(0)
     const newRound = tournamentService.incRound();
-    let fireworksInterval = null
+    let fireworksInterval: any = null
     if (newRound > 3 && (gameResult.goalsA ?? 0) >= (gameResult.goalsB ?? 0)) {
-      fireworksInterval = setInterval(() => {
-        fireworks()
-        setTimeout(() => fireworks(), 400)
-        setTimeout(() => fireworks(), 500)
-        setTimeout(() => fireworks(), 800)  
-      }, 1500)
-      fireworks()
-      setTimeout(() => fireworks(), 400)
-      setTimeout(() => fireworks(), 500)
-      setTimeout(() => fireworks(), 800)
+      finalFireworks()
       setCommentaryType('weAreTheChampions')
     } else {
       if (gameResult.goalsA == gameResult.goalsB) {
         setCommentaryType('advanceOnPenalties')
+        fireworks()
+        setTimeout(() => setRoundNumber(newRound), 10000)
       } else if ((gameResult.goalsA ?? 0) > (gameResult.goalsB ?? 0)) {
         setCommentaryType('winning')
+        fireworks()
         setTimeout(() => setCommentaryType('victoryToNextRound'), 20000)
       } else if ((gameResult.goalsA ?? 0) < (gameResult.goalsB ?? 0)) {
         setCommentaryType('losing')
@@ -97,7 +93,7 @@ const SoccerTeamManager = () => {
     if (wallet) {
       wallet.requestAddresses().then(accounts => {
         if (accounts.length) {
-          loadPlayers(accounts[0])
+          loadTeam()
         }
       }).catch(e => console.error(e))
       const matches = tournamentService.getMatches()
@@ -261,13 +257,17 @@ const SoccerTeamManager = () => {
   };
 
   const loadTeam = async () => {
-    const wallet = getWalletClient()
-    if (wallet) {
-      wallet.requestAddresses().then(accounts => {
+    try {
+      setLoadingTeam(true)
+      const wallet = getWalletClient()
+      if (wallet) {
+        const accounts = await wallet.requestAddresses()
         if (accounts.length) {
-          loadPlayers(accounts[0])
+          await loadPlayers(accounts[0])
         }
-      }).catch(e => console.error(e))
+      }
+    } finally {
+      setLoadingTeam(false)
     }
   }
 
@@ -308,10 +308,13 @@ const SoccerTeamManager = () => {
   }
 
   const buyPack = async () => {
-    await mintNFTs()
-    setTimeout(() => {
-      loadTeam()
-    }, 1000)
+    try {
+      setLoadingTeam(true)
+      await mintNFTs()
+    } finally {
+      setLoadingTeam(false)
+    }
+    loadTeam()
   }
 
   return (
@@ -328,7 +331,7 @@ const SoccerTeamManager = () => {
             <Button onClick={loadTeam}>Load Team</Button>
           </div>
         </CardHeader>
-        
+        {loadingTeam && (<LoadingSpinner />)}
         {/* <Button onClick={() => setReqId('x')}>Fake req</Button>
         <Button onClick={() => setCommentaryType('winning')}>Winning</Button>
         <Button onClick={() => setCommentaryType('advanceOnPenalties')}>Penal</Button>

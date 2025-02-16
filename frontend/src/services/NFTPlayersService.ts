@@ -196,6 +196,13 @@ export async function mintNFTs() {
         gas: BigInt(3_000_000),
     })
 
-    const txHash = await walletClient.writeContract(request as any)
+    const txHash = await walletClient.writeContract(request)
     console.log('Transaction Hash:', txHash)
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
+    console.log('Transaction Receipt:', receipt)
+    if (receipt.status === 'success') {
+        console.log('NFTs minted successfully!')
+    } else {
+        console.error('Transaction failed:', receipt)
+    }
 }
